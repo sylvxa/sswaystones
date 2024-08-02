@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " E ",
+    "RWR",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:stone_bricks"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "W": {
+      "item": "minecraft:stone_brick_wall"
+    }
+  },
+  "result": {
+    "id": "sswaystones:waystone"
+  }
+}
+

@@ -1,0 +1,80 @@
+package lol.sylvie.sswaystones.compat;
+
+import lol.sylvie.sswaystones.storage.WaystoneRecord;
+import lol.sylvie.sswaystones.storage.WaystoneStorage;
+import lol.sylvie.sswaystones.util.NameGenerator;
+import net.minecraft.server.network.ServerPlayerEntity;
+import org.geysermc.cumulus.component.ButtonComponent;
+import org.geysermc.cumulus.form.CustomForm;
+import org.geysermc.cumulus.form.SimpleForm;
+import org.geysermc.cumulus.util.FormImage;
+import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+
+import java.util.List;
+
+public class GeyserViewerGui {
+    private static final String CRAFATAR = "https://crafatar.com/avatars/%s?overlay";
+
+    public static boolean openGuiIfBedrock(ServerPlayerEntity player, WaystoneRecord waystone) {
+        GeyserConnection connection = GeyserApi.api().connectionByUuid(player.getUuid());
+        if (connection == null) return false;
+
+        SimpleForm form = GeyserViewerGui.getViewerForm(player, connection, waystone);
+        connection.sendForm(form);
+        return true;
+    }
+
+    public static SimpleForm getViewerForm(ServerPlayerEntity player, GeyserConnection connection, WaystoneRecord waystone) {
+        SimpleForm.Builder builder = SimpleForm.builder()
+                .title(String.format("%s [%s]", waystone.getWaystoneName(), waystone.getOwnerName()));
+
+        assert player.getServer() != null; // It's a ServerPlayerEntity.
+        WaystoneStorage storage = WaystoneStorage.getServerState(player.getServer());
+        List<WaystoneRecord> discovered = storage.getDiscoveredWaystones(player).stream().filter(r -> !r.equals(waystone)).toList();
+
+        for (WaystoneRecord record : discovered) {
+            ButtonComponent component = ButtonComponent.of(record.getWaystoneName(), FormImage.Type.URL, CRAFATAR.replace("%s", record.getOwnerUUID().toString()));
+            builder.button(component);
+        }
+
+        boolean canEdit = waystone.canEdit(player);
+        if (canEdit) builder.button("Settings", FormImage.Type.PATH, "textures/gui/newgui/anvil-hammer.png");
+
+        builder.validResultHandler(response -> {
+            int selectedIndex = response.clickedButtonId();
+            if (selectedIndex < discovered.size()) {
+                WaystoneRecord selectedWaystone = discovered.get(selectedIndex);
+                selectedWaystone.handleTeleport(player);
+                return;
+            }
+
+            if (selectedIndex == discovered.size() && canEdit) {
+                CustomForm form = getSettingsForm(waystone);
+                connection.sendForm(form);
+            }
+        });
+
+        return builder.build();
+    }
+
+    public static CustomForm getSettingsForm(WaystoneRecord waystone) {
+        CustomForm.Builder builder = CustomForm.builder()
+                .title(String.format("%s - Settings", waystone.getWaystoneName()));
+
+        builder.input("Waystone Name", NameGenerator.generateName(), waystone.getWaystoneName());
+        builder.toggle("Global", waystone.isGlobal());
+
+        builder.validResultHandler(response -> {
+            String name = response.asInput();
+            if (name == null) return;
+
+            boolean global = response.asToggle();
+
+            waystone.setWaystoneName(name);
+            waystone.setGlobal(global);
+        });
+
+        return builder.build();
+    }
+}

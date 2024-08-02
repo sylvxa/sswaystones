@@ -1,0 +1,6 @@
+{
+  "error.sswaystones.no_dimension": "The dimension you are trying to teleport to no longer exists!",
+  "block.sswaystones.waystone": "Waystone",
+  "command.sswaystones.list_header": "List of Waystones:",
+  "message.sswaystones.discovered": "You discovered %s!"
+}
