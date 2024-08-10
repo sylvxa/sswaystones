@@ -13,6 +13,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class JavaViewerGui extends SimpleGui {
@@ -29,7 +30,10 @@ public class JavaViewerGui extends SimpleGui {
 
         assert player.getServer() != null; // It's a ServerPlayerEntity.
         WaystoneStorage storage = WaystoneStorage.getServerState(player.getServer());
-        this.discovered = storage.getDiscoveredWaystones(player).stream().filter(r -> !r.equals(waystone)).toList();
+        this.discovered = storage.getDiscoveredWaystones(player).stream()
+                .filter(r -> !r.equals(waystone))
+                .sorted(Comparator.comparing(WaystoneRecord::getWaystoneName))
+                .toList();
         this.maxPages = Math.ceilDiv(this.discovered.size(), ITEMS_PER_PAGE);
     }
 

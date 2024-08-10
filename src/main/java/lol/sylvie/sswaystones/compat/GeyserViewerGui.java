@@ -11,6 +11,7 @@ import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class GeyserViewerGui {
@@ -31,7 +32,10 @@ public class GeyserViewerGui {
 
         assert player.getServer() != null; // It's a ServerPlayerEntity.
         WaystoneStorage storage = WaystoneStorage.getServerState(player.getServer());
-        List<WaystoneRecord> discovered = storage.getDiscoveredWaystones(player).stream().filter(r -> !r.equals(waystone)).toList();
+        List<WaystoneRecord> discovered = storage.getDiscoveredWaystones(player).stream()
+                .filter(r -> !r.equals(waystone))
+                .sorted(Comparator.comparing(WaystoneRecord::getWaystoneName))
+                .toList();
 
         for (WaystoneRecord record : discovered) {
             ButtonComponent component = ButtonComponent.of(record.getWaystoneName(), FormImage.Type.URL, CRAFATAR.replace("%s", record.getOwnerUUID().toString()));
