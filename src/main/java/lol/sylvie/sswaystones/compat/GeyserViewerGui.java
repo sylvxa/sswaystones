@@ -10,6 +10,7 @@ import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.List;
 public class GeyserViewerGui {
     private static final String CRAFATAR = "https://crafatar.com/avatars/%s?overlay";
 
-    public static boolean openGuiIfBedrock(ServerPlayerEntity player, WaystoneRecord waystone) {
+    public static boolean openGuiIfBedrock(ServerPlayerEntity player, @Nullable WaystoneRecord waystone) {
         GeyserConnection connection = GeyserApi.api().connectionByUuid(player.getUuid());
         if (connection == null) return false;
 
@@ -26,9 +27,13 @@ public class GeyserViewerGui {
         return true;
     }
 
-    public static SimpleForm getViewerForm(ServerPlayerEntity player, GeyserConnection connection, WaystoneRecord waystone) {
-        SimpleForm.Builder builder = SimpleForm.builder()
-                .title(String.format("%s [%s]", waystone.getWaystoneName(), waystone.getOwnerName()));
+    public static SimpleForm getViewerForm(ServerPlayerEntity player, GeyserConnection connection, @Nullable WaystoneRecord waystone) {
+        String title = "Waystones";
+        if (waystone != null) {
+            title = String.format("%s [%s]", waystone.getWaystoneName(), waystone.getOwnerName());
+        }
+
+        SimpleForm.Builder builder = SimpleForm.builder().title(title);
 
         assert player.getServer() != null; // It's a ServerPlayerEntity.
         WaystoneStorage storage = WaystoneStorage.getServerState(player.getServer());
@@ -42,8 +47,8 @@ public class GeyserViewerGui {
             builder.button(component);
         }
 
-        boolean canEdit = waystone.canEdit(player);
-        if (canEdit) builder.button("Settings", FormImage.Type.PATH, "textures/gui/newgui/anvil-hammer.png");
+        boolean showSettingsButton = waystone != null && waystone.canEdit(player);
+        if (showSettingsButton) builder.button("Settings", FormImage.Type.PATH, "textures/gui/newgui/anvil-hammer.png");
 
         builder.validResultHandler(response -> {
             int selectedIndex = response.clickedButtonId();
@@ -53,7 +58,7 @@ public class GeyserViewerGui {
                 return;
             }
 
-            if (selectedIndex == discovered.size() && canEdit) {
+            if (selectedIndex == discovered.size() && showSettingsButton) {
                 CustomForm form = getSettingsForm(waystone);
                 connection.sendForm(form);
             }

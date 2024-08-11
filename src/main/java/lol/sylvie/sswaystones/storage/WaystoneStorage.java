@@ -83,12 +83,14 @@ public class WaystoneStorage extends PersistentState {
     }
 
     // Create a waystone
-    public void createWaystone(BlockPos pos, World world, LivingEntity player) {
+    public WaystoneRecord createWaystone(BlockPos pos, World world, LivingEntity player) {
         WaystoneRecord record = new WaystoneRecord(player.getUuid(), player.getName().getString(), NameGenerator.generateName(), pos, world.getRegistryKey(), false);
         String hash = record.getHash();
         this.waystones.put(hash, record);
 
         getPlayerState(player).discoveredWaystones.add(hash);
+
+        return record;
     }
 
     // Get all known waystones

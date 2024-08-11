@@ -59,15 +59,19 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         return 2;
     }
 
+    private WaystoneRecord makeWaystoneHere(BlockPos pos, World world, LivingEntity owner) {
+        assert world.getServer() != null;
+        WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
+        return storage.createWaystone(pos, world, owner);
+    }
+
     // Placing & breaking
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
         if (world.isClient || placer == null) return;
 
-        assert world.getServer() != null;
-        WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
-        storage.createWaystone(pos, world, placer);
+        makeWaystoneHere(pos, world, placer);
     }
 
     @Override
@@ -98,14 +102,14 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
             // Make sure we remember it!
             String waystoneHash = HashUtil.getHash(pos, world.getRegistryKey());
             WaystoneRecord record = storage.getWaystone(waystoneHash);
-            if (record != null) {
-                if (!playerData.discoveredWaystones.contains(waystoneHash)) {
-                    playerData.discoveredWaystones.add(waystoneHash);
-                    player.sendMessage(Text.translatable("message.sswaystones.discovered", Text.literal(record.getWaystoneName()).formatted(Formatting.BOLD, Formatting.GOLD)).formatted(Formatting.DARK_PURPLE));
-                }
-            } else {
-                Waystones.LOGGER.warn("There is some FUNKY stuff happening with these waystones!");
-                return ActionResult.FAIL;
+
+            if (record == null) {
+                record = makeWaystoneHere(pos, world, serverPlayer);
+            }
+
+            if (!playerData.discoveredWaystones.contains(waystoneHash)) {
+                playerData.discoveredWaystones.add(waystoneHash);
+                player.sendMessage(Text.translatable("message.sswaystones.discovered", Text.literal(record.getWaystoneName()).formatted(Formatting.BOLD, Formatting.GOLD)).formatted(Formatting.DARK_PURPLE));
             }
 
             if (FabricLoader.getInstance().isModLoaded("geyser-fabric") && GeyserViewerGui.openGuiIfBedrock(serverPlayer, record)) {

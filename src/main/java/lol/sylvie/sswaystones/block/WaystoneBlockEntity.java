@@ -71,13 +71,7 @@ public class WaystoneBlockEntity extends BlockEntity {
             this.waystone = storage.getWaystone(HashUtil.getHash(pos, world.getRegistryKey()));
         }
 
-        // If it is STILL null
-        if (this.waystone == null) {
-            Waystones.LOGGER.warn("Someone nuked data they weren't supposed to nuke. :P");
-            world.breakBlock(pos, false);
-            return null;
-        }
-
+        // This can still be null!
         return this.waystone;
     }
 

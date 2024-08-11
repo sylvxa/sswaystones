@@ -12,6 +12,7 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
@@ -24,7 +25,7 @@ public class JavaViewerGui extends SimpleGui {
     private final List<WaystoneRecord> discovered;
     private final int maxPages;
 
-    public JavaViewerGui(ServerPlayerEntity player, WaystoneRecord waystone) {
+    public JavaViewerGui(ServerPlayerEntity player, @Nullable WaystoneRecord waystone) {
         super(ScreenHandlerType.GENERIC_9X6, player, false);
         this.waystone = waystone;
 
@@ -38,7 +39,12 @@ public class JavaViewerGui extends SimpleGui {
     }
 
     public void updateMenu() {
-        this.setTitle(Text.literal(String.format("%s [%s] (%s/%s)", waystone.getWaystoneName(), waystone.getOwnerName(), pageIndex + 1, maxPages)));
+        if (waystone != null) {
+            this.setTitle(Text.literal(String.format("%s [%s] (%s/%s)", waystone.getWaystoneName(), waystone.getOwnerName(), pageIndex + 1, maxPages)));
+        } else {
+            this.setTitle(Text.literal(String.format("Waystones (%s/%s)",pageIndex + 1, maxPages)));
+        }
+
         int offset = ITEMS_PER_PAGE * pageIndex;
 
         for (int i = 0; i < ITEMS_PER_PAGE; i++) {
@@ -85,6 +91,8 @@ public class JavaViewerGui extends SimpleGui {
                 .setCallback((index, type, action, gui) -> nextPage()));
 
         // Waystone settings
+        if (waystone == null) return;
+
         if (waystone.canEdit(player)) {
             if (player.hasPermissionLevel(4)) {
                 this.setSlot(51, new GuiElementBuilder()
