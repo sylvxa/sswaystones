@@ -1,7 +1,7 @@
 package lol.sylvie.sswaystones;
 
 import lol.sylvie.sswaystones.block.ModBlocks;
-import lol.sylvie.sswaystones.block.ModItems;
+import lol.sylvie.sswaystones.item.ModItems;
 import lol.sylvie.sswaystones.command.WaystonesCommand;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;

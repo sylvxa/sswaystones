@@ -39,10 +39,12 @@ public class JavaViewerGui extends SimpleGui {
     }
 
     public void updateMenu() {
+        // If there are no other waystones this will display as 0
+        int displayMaxPages = Math.max(maxPages, 1);
         if (waystone != null) {
-            this.setTitle(Text.literal(String.format("%s [%s] (%s/%s)", waystone.getWaystoneName(), waystone.getOwnerName(), pageIndex + 1, maxPages)));
+            this.setTitle(Text.literal(String.format("%s [%s] (%s/%s)", waystone.getWaystoneName(), waystone.getOwnerName(), pageIndex + 1, displayMaxPages)));
         } else {
-            this.setTitle(Text.literal(String.format("Waystones (%s/%s)",pageIndex + 1, maxPages)));
+            this.setTitle(Text.literal(String.format("Waystones (%s/%s)", pageIndex + 1, displayMaxPages)));
         }
 
         int offset = ITEMS_PER_PAGE * pageIndex;

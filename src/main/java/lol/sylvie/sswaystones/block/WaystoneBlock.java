@@ -2,8 +2,7 @@ package lol.sylvie.sswaystones.block;
 
 import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
-import lol.sylvie.sswaystones.Waystones;
-import lol.sylvie.sswaystones.compat.GeyserViewerGui;
+import lol.sylvie.sswaystones.gui.GeyserViewerGui;
 import lol.sylvie.sswaystones.gui.JavaViewerGui;
 import lol.sylvie.sswaystones.storage.PlayerData;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;

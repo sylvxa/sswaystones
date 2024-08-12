@@ -1,4 +1,4 @@
-package lol.sylvie.sswaystones.compat;
+package lol.sylvie.sswaystones.gui;
 
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
