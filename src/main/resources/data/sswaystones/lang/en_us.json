@@ -4,5 +4,5 @@
   "command.sswaystones.list_header": "List of Waystones:",
   "message.sswaystones.discovered": "You discovered %s!",
   "block.sswaystones.waystone": "Waystone",
-  "item.sswaystones.portable_waystones": "Portable Waystone"
+  "item.sswaystones.portable_waystone": "Portable Waystone"
 }
