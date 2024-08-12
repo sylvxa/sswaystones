@@ -58,7 +58,7 @@ public class JavaViewerGui extends SimpleGui {
 
             this.setSlot(i - offset, new GuiElementBuilder(Items.PLAYER_HEAD)
                     .setSkullOwner(new GameProfile(record.getOwnerUUID(), record.getOwnerName()), player.server)
-                    .setName(Text.literal(record.getWaystoneName()))
+                    .setName(record.getWaystoneText())
                     .setLore(List.of(Text.of(record.getOwnerName())))
                     .setCallback((index, type, action, gui) -> {
                         record.handleTeleport(player);
