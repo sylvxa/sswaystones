@@ -2,13 +2,11 @@ package lol.sylvie.sswaystones.block;
 
 import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
-import lol.sylvie.sswaystones.gui.GeyserViewerGui;
-import lol.sylvie.sswaystones.gui.JavaViewerGui;
+import lol.sylvie.sswaystones.gui.ViewerUtil;
 import lol.sylvie.sswaystones.storage.PlayerData;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.HashUtil;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -114,14 +112,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
                         .formatted(Formatting.DARK_PURPLE));
             }
 
-            if (FabricLoader.getInstance().isModLoaded("geyser-fabric") && GeyserViewerGui.openGuiIfBedrock(serverPlayer, record)) {
-                return ActionResult.SUCCESS;
-            }
-
-            JavaViewerGui gui = new JavaViewerGui(serverPlayer, record);
-            gui.updateMenu();
-            gui.open();
-
+            ViewerUtil.openGui(serverPlayer, record);
             return ActionResult.SUCCESS;
         }
         return super.onUse(state, world, pos, player, hit);

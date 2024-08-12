@@ -24,6 +24,7 @@ public class ModBlocks {
     public static Block register(Block block, String name) {
         // Register the block
         Identifier id = Identifier.of(Waystones.MOD_ID, name);
+
         return Registry.register(Registries.BLOCK, id, block);
     }
 

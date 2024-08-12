@@ -97,7 +97,6 @@ public class WaystoneBlockEntity extends BlockEntity {
             nameDisplay.setText(record.getWaystoneText());
             nameDisplay.setTextAlignment(DisplayEntity.TextDisplayEntity.TextAlignment.CENTER);
             nameDisplay.setBillboardMode(DisplayEntity.BillboardMode.CENTER);
-            nameDisplay.setShadow(true);
 
             holder.addElement(nameDisplay);
         }

@@ -10,7 +10,16 @@ Polymer-based server sided Waystone mod, with Geyser and vanilla client support.
 - Waystones can have up to 32 character long names and can be set to "global" to allow for anybody on the server to use them.
 - The mod works on both servers and singleplayer worlds, and all storage data is held in the world itself.
 
+## Recipes
+*Recipe for the Waystone*
+
+![Recipe for the Waystone](assets/waystone_recipe.png)
+
+*Recipe for the Portable Waystone*
+
+![Recipe for the Portable Waystone](assets/portable_waystone_recipe.png)
+
 ## Roadmap
 - [ ] Add optional XP price for teleporting.
 - [ ] More configuration
-- [ ] More items (Portable Waystone, Scrolls, etc.)
+- [ ] More items (~~Portable Waystone~~, Scrolls, etc.)

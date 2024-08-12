@@ -16,11 +16,16 @@ public class ModItems {
             new Item.Settings().rarity(Rarity.RARE)),
             "waystone");
 
+    public static final Item PORTABLE_WAYSTONE = register(new PortableWaystoneItem(
+            new Item.Settings().rarity(Rarity.EPIC).maxCount(1)),
+            "portable_waystone");
+
     public static final ItemGroup ITEM_GROUP = PolymerItemGroupUtils.builder()
             .displayName(Text.translatable("itemGroup.sswaystones.item_group"))
             .icon(Items.STONE_BRICK_WALL::getDefaultStack)
             .entries((context, entries) -> {
                 entries.add(WAYSTONE);
+                entries.add(PORTABLE_WAYSTONE);
             })
             .build();
 
