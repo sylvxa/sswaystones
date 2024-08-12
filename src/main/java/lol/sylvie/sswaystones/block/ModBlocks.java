@@ -11,7 +11,8 @@ import net.minecraft.util.Identifier;
 
 public class ModBlocks {
     public static final Block WAYSTONE = register(new WaystoneBlock(
-            AbstractBlock.Settings.create()),
+            AbstractBlock.Settings.create()
+                    .hardness(1.5f)),
             "waystone");
 
     public static final BlockEntityType<WaystoneBlockEntity> WAYSTONE_BLOCK_ENTITY = Registry.register(
@@ -23,7 +24,6 @@ public class ModBlocks {
     public static Block register(Block block, String name) {
         // Register the block
         Identifier id = Identifier.of(Waystones.MOD_ID, name);
-
         return Registry.register(Registries.BLOCK, id, block);
     }
 

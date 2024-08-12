@@ -131,6 +131,10 @@ public final class WaystoneRecord {
         return waystoneName;
     }
 
+    public Text getWaystoneText() {
+        return Text.literal(this.getWaystoneName());
+    }
+
     public BlockPos getPos() {
         return pos;
     }

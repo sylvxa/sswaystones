@@ -69,8 +69,8 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
-        if (world.isClient || placer == null) return;
 
+        if (world.isClient || placer == null) return;
         makeWaystoneHere(pos, world, placer);
     }
 
@@ -109,7 +109,10 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
 
             if (!playerData.discoveredWaystones.contains(waystoneHash)) {
                 playerData.discoveredWaystones.add(waystoneHash);
-                player.sendMessage(Text.translatable("message.sswaystones.discovered", Text.literal(record.getWaystoneName()).formatted(Formatting.BOLD, Formatting.GOLD)).formatted(Formatting.DARK_PURPLE));
+                player.sendMessage(
+                        Text.translatable("message.sswaystones.discovered", record.getWaystoneText().copy()
+                        .formatted(Formatting.BOLD, Formatting.GOLD))
+                        .formatted(Formatting.DARK_PURPLE));
             }
 
             if (FabricLoader.getInstance().isModLoaded("geyser-fabric") && GeyserViewerGui.openGuiIfBedrock(serverPlayer, record)) {
