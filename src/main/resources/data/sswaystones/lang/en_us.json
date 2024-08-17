@@ -4,5 +4,12 @@
   "command.sswaystones.list_header": "List of Waystones:",
   "message.sswaystones.discovered": "You discovered %s!",
   "block.sswaystones.waystone": "Waystone",
-  "item.sswaystones.portable_waystone": "Portable Waystone"
+  "item.sswaystones.portable_waystone": "Portable Waystone",
+  "gui.sswaystones.page_previous": "Previous Page",
+  "gui.sswaystones.page_next": "Next Page",
+  "gui.sswaystones.steal_waystone": "Take Ownership",
+  "gui.sswaystones.change_icon": "Change Icon",
+  "gui.sswaystones.change_name": "Change Name",
+  "gui.sswaystones.toggle_global": "Toggle Global",
+  "gui.sswaystones.change_name_title": "Waystone Name"
 }

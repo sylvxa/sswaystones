@@ -72,6 +72,7 @@ public class JavaViewerGui extends SimpleGui {
         // I couldn't think of an icon that fits "take ownership", but this looks cool!
         String companionCube = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTMxMTI1YjBmMjk0MmZhM2NkMjdjODAyNTg2M2ViYzNlOWQ3YmZkNjg1NDdlNjEwYTlkM2UxODMyMDc1MzM2NCJ9fX0=";
 
+        String camera = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGNjOTIyNTFlMjM0ZWIzZDlhZTc0YTUwZGQ1YjlhMzkzMTY2YTBmM2FjMWVlNmExNTQwZTkzMTQ1MDA5ZDdhZiJ9fX0=";
         String anvil = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWI0MjVhYTNkOTQ2MThhODdkYWM5Yzk0ZjM3N2FmNmNhNDk4NGMwNzU3OTY3NGZhZDkxN2Y2MDJiN2JmMjM1In19fQ==";
         String globe = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjBhY2EwMTMxNzhhOWY0NzkxM2U4OTRkM2QwYmZkNGIwYjY2MTIwODI1YjlhYWI4YTRkN2Q5YmYwMjQ1YWJmIn19fQ==";
 
@@ -83,13 +84,13 @@ public class JavaViewerGui extends SimpleGui {
         this.setSlot(45, new GuiElementBuilder()
                 .setItem(Items.PLAYER_HEAD)
                 .setSkullOwner(arrowLeft, null, null)
-                .setName(Text.literal("Previous Page"))
+                .setName(Text.translatable("gui.sswaystones.page_previous"))
                 .setCallback((index, type, action, gui) -> previousPage()));
 
         this.setSlot(47, new GuiElementBuilder()
                 .setItem(Items.PLAYER_HEAD)
                 .setSkullOwner(arrowRight, null, null)
-                .setName(Text.literal("Next Page"))
+                .setName(Text.translatable("gui.sswaystones.page_next"))
                 .setCallback((index, type, action, gui) -> nextPage()));
 
         // Waystone settings
@@ -97,20 +98,25 @@ public class JavaViewerGui extends SimpleGui {
 
         if (waystone.canEdit(player)) {
             if (player.hasPermissionLevel(4)) {
-                this.setSlot(51, new GuiElementBuilder()
+                this.setSlot(50, new GuiElementBuilder()
                         .setItem(Items.PLAYER_HEAD)
                         .setSkullOwner(companionCube)
-                        .setName(Text.literal("Take Ownership"))
+                        .setName(Text.translatable("gui.sswaystones.steal_waystone"))
                         .setCallback((index, type, action, gui) -> {
                             waystone.setOwner(player);
                             this.updateMenu();
                         }));
             }
 
+            this.setSlot(51, new GuiElementBuilder()
+                    .setItem(Items.PLAYER_HEAD)
+                    .setSkullOwner(camera)
+                    .setName(Text.translatable("gui.sswaystones.change_icon")));
+
             this.setSlot(52, new GuiElementBuilder()
                     .setItem(Items.PLAYER_HEAD)
                     .setSkullOwner(anvil)
-                    .setName(Text.literal("Change Name"))
+                    .setName(Text.translatable("gui.sswaystones.change_name"))
                     .setCallback((index, type, action, gui) -> {
                         this.changeName();
                         this.updateMenu();
@@ -120,7 +126,7 @@ public class JavaViewerGui extends SimpleGui {
             this.setSlot(53, new GuiElementBuilder()
                     .setItem(Items.PLAYER_HEAD)
                     .setSkullOwner(globe)
-                    .setName(Text.literal("Toggle Global").formatted(global ? Formatting.GREEN : Formatting.RED))
+                    .setName(Text.translatable("gui.sswaystones.toggle_global").formatted(global ? Formatting.GREEN : Formatting.RED))
                     .glow(global)
                     .setCallback((index, type, action, gui) -> {
                         this.waystone.setGlobal(!global);
@@ -164,20 +170,20 @@ public class JavaViewerGui extends SimpleGui {
 
         anvilGui.setSlot(1, new GuiElementBuilder()
                 .setItem(Items.BARRIER)
-                .setName(Text.literal("Back"))
+                .setName(Text.translatable("gui.back"))
                 .setCallback((index, type, action, gui) -> gui.close()));
 
         anvilGui.setSlot(2, new GuiElementBuilder()
                 .setItem(Items.PLAYER_HEAD)
                 .setSkullOwner(checkmark)
-                .setName(Text.literal("Confirm"))
+                .setName(Text.translatable("gui.done"))
                 .setCallback((index, type, action, gui) -> {
                     String input = anvilGui.getInput();
                     waystone.setWaystoneName(input);
                     gui.close();
                 }));
 
-        anvilGui.setTitle(Text.literal("Waystone Name"));
+        anvilGui.setTitle(Text.translatable("gui.sswaystones.change_name_title"));
         anvilGui.open();
     }
 }
