@@ -199,7 +199,8 @@ public class JavaViewerGui extends SimpleGui {
 
         private void updateMenu() {
             for (int i = 0; i < 9; i++) {
-                this.setSlot(i, Items.GRAY_STAINED_GLASS_PANE.getDefaultStack());
+                this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE)
+                    .setName(Text.translatable("gui.sswaystones.change_icon_instruction").formatted(Formatting.GRAY)));
             }
             this.setSlot(4, waystone.getIconOrHead());
         }
