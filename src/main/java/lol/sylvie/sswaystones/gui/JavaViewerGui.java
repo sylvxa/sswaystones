@@ -1,14 +1,14 @@
 package lol.sylvie.sswaystones.gui;
 
-import com.mojang.authlib.GameProfile;
+import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.gui.AnvilInputGui;
-import eu.pb4.sgui.api.gui.SimpleGui;
+import eu.pb4.sgui.api.gui.*;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -56,9 +56,8 @@ public class JavaViewerGui extends SimpleGui {
         for (int i = offset; i < this.discovered.size(); i++) {
             WaystoneRecord record = this.discovered.get(i);
 
-            this.setSlot(i - offset, new GuiElementBuilder(Items.PLAYER_HEAD)
-                    .setSkullOwner(new GameProfile(record.getOwnerUUID(), record.getOwnerName()), player.server)
-                    .setName(record.getWaystoneText())
+            this.setSlot(i - offset, new GuiElementBuilder(record.getIconOrHead())
+                    .setName(record.getWaystoneText().copy().formatted(Formatting.YELLOW))
                     .setLore(List.of(Text.of(record.getOwnerName())))
                     .setCallback((index, type, action, gui) -> {
                         record.handleTeleport(player);
@@ -72,7 +71,6 @@ public class JavaViewerGui extends SimpleGui {
         // I couldn't think of an icon that fits "take ownership", but this looks cool!
         String companionCube = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTMxMTI1YjBmMjk0MmZhM2NkMjdjODAyNTg2M2ViYzNlOWQ3YmZkNjg1NDdlNjEwYTlkM2UxODMyMDc1MzM2NCJ9fX0=";
 
-        String camera = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGNjOTIyNTFlMjM0ZWIzZDlhZTc0YTUwZGQ1YjlhMzkzMTY2YTBmM2FjMWVlNmExNTQwZTkzMTQ1MDA5ZDdhZiJ9fX0=";
         String anvil = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWI0MjVhYTNkOTQ2MThhODdkYWM5Yzk0ZjM3N2FmNmNhNDk4NGMwNzU3OTY3NGZhZDkxN2Y2MDJiN2JmMjM1In19fQ==";
         String globe = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjBhY2EwMTMxNzhhOWY0NzkxM2U4OTRkM2QwYmZkNGIwYjY2MTIwODI1YjlhYWI4YTRkN2Q5YmYwMjQ1YWJmIn19fQ==";
 
@@ -108,19 +106,16 @@ public class JavaViewerGui extends SimpleGui {
                         }));
             }
 
-            this.setSlot(51, new GuiElementBuilder()
-                    .setItem(Items.PLAYER_HEAD)
-                    .setSkullOwner(camera)
-                    .setName(Text.translatable("gui.sswaystones.change_icon")));
+            this.setSlot(51, new GuiElementBuilder(waystone.getIconOrHead())
+                    .setName(Text.translatable("gui.sswaystones.change_icon").formatted(Formatting.YELLOW))
+                    .glow()
+                    .setCallback((index, type, action, gui) -> this.changeIcon()));
 
             this.setSlot(52, new GuiElementBuilder()
                     .setItem(Items.PLAYER_HEAD)
                     .setSkullOwner(anvil)
                     .setName(Text.translatable("gui.sswaystones.change_name"))
-                    .setCallback((index, type, action, gui) -> {
-                        this.changeName();
-                        this.updateMenu();
-                    }));
+                    .setCallback((index, type, action, gui) -> this.changeName()));
 
             boolean global = this.waystone.isGlobal();
             this.setSlot(53, new GuiElementBuilder()
@@ -153,7 +148,7 @@ public class JavaViewerGui extends SimpleGui {
         this.updateMenu();
     }
 
-    public void changeName() {
+    protected void changeName() {
         AnvilInputGui anvilGui = new AnvilInputGui(player, false) {
             @Override
             public void onClose() {
@@ -185,5 +180,51 @@ public class JavaViewerGui extends SimpleGui {
 
         anvilGui.setTitle(Text.translatable("gui.sswaystones.change_name_title"));
         anvilGui.open();
+    }
+
+    protected void changeIcon() {
+        IconGui iconGui = new IconGui(player, waystone);
+        iconGui.open();
+    }
+
+    protected static class IconGui extends SimpleGui {
+        private final WaystoneRecord waystone;
+
+        public IconGui(ServerPlayerEntity player, WaystoneRecord waystone) {
+            super(ScreenHandlerType.GENERIC_3X3, player, false);
+            this.waystone = waystone;
+            this.updateMenu();
+            this.setTitle(Text.translatable("gui.sswaystones.change_icon_title"));
+        }
+
+        private void updateMenu() {
+            for (int i = 0; i < 9; i++) {
+                this.setSlot(i, Items.GRAY_STAINED_GLASS_PANE.getDefaultStack());
+            }
+            this.setSlot(4, waystone.getIconOrHead());
+        }
+
+        @Override
+        public boolean onAnyClick(int index, ClickType type, SlotActionType action) {
+            if (index > 8 && action.equals(SlotActionType.PICKUP)) {
+                if (index > 35) index -= 36; // Get hotbar slot
+                ItemStack stack = player.getInventory().getStack(index);
+
+                if (stack != null && !stack.isOf(Items.AIR)) {
+                    waystone.setIcon(stack.getItem());
+                    this.close();
+                }
+            }
+            return super.onAnyClick(index, type, action);
+        }
+
+        @Override
+        public void onClose() {
+            super.onClose();
+
+            JavaViewerGui viewer = new JavaViewerGui(player, waystone);
+            viewer.updateMenu();
+            viewer.open();
+        }
     }
 }

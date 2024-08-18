@@ -11,5 +11,6 @@
   "gui.sswaystones.change_icon": "Change Icon",
   "gui.sswaystones.change_name": "Change Name",
   "gui.sswaystones.toggle_global": "Toggle Global",
-  "gui.sswaystones.change_name_title": "Waystone Name"
+  "gui.sswaystones.change_name_title": "Waystone Name",
+  "gui.sswaystones.change_icon_title": "Waystone Icon"
 }

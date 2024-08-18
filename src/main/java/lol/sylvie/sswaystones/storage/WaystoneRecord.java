@@ -1,10 +1,17 @@
 package lol.sylvie.sswaystones.storage;
 
+import com.mojang.authlib.GameProfile;
 import lol.sylvie.sswaystones.util.HashUtil;
 import net.minecraft.block.BlockState;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -16,6 +23,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -27,14 +35,16 @@ public final class WaystoneRecord {
     private final BlockPos pos; // Must be final as the hash is calculated based on pos and world
     private final RegistryKey<World> world;
     private boolean global;
+    private Item icon;
 
-    public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world, boolean global) {
+    public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world, boolean global, @Nullable Item icon) {
         this.owner = owner;
         this.ownerName = ownerName;
         this.setWaystoneName(waystoneName); // Limits waystone name
         this.pos = pos;
         this.world = world;
         this.global = global;
+        this.icon = icon;
     }
 
     public String asString() {
@@ -58,6 +68,8 @@ public final class WaystoneRecord {
 
         waystoneTag.putBoolean("global", global);
 
+        if (icon != null) waystoneTag.putString("icon", icon.toString());
+
         return waystoneTag;
     }
 
@@ -75,7 +87,16 @@ public final class WaystoneRecord {
 
         boolean global = nbt.getBoolean("global");
 
-        return new WaystoneRecord(waystoneOwner, waystoneOwnerName, waystoneName, position, worldRegistryKey, global);
+        Item icon = null;
+        if (nbt.contains("icon")) {
+            String iconStringId = nbt.getString("icon");
+            Identifier iconId = Identifier.tryParse(iconStringId);
+            if (iconId != null) {
+                icon = Registries.ITEM.get(iconId);
+            }
+        }
+
+        return new WaystoneRecord(waystoneOwner, waystoneOwnerName, waystoneName, position, worldRegistryKey, global, icon);
     }
 
     public void handleTeleport(ServerPlayerEntity player) {
@@ -147,6 +168,19 @@ public final class WaystoneRecord {
         return global;
     }
 
+    public Item getIcon() {
+        return icon;
+    }
+
+    public ItemStack getIconOrHead() {
+        if (icon == null) {
+            ItemStack head = Items.PLAYER_HEAD.getDefaultStack();
+            head.set(DataComponentTypes.PROFILE, new ProfileComponent(new GameProfile(this.getOwnerUUID(), this.getOwnerName())));
+            return head;
+        }
+        return icon.getDefaultStack();
+    }
+
     public void setOwner(PlayerEntity player) {
         this.owner = player.getUuid();
         this.ownerName = player.getGameProfile().getName();
@@ -159,6 +193,10 @@ public final class WaystoneRecord {
 
     public void setGlobal(boolean global) {
         this.global = global;
+    }
+
+    public void setIcon(Item icon) {
+        this.icon = icon;
     }
 
     public boolean canEdit(ServerPlayerEntity player) {
