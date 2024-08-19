@@ -23,3 +23,9 @@ Polymer-based server sided Waystone mod, with Geyser and vanilla client support.
 - [ ] Add optional XP price for teleporting.
 - [ ] More configuration
 - [ ] More items (~~Portable Waystone~~, Scrolls, etc.)
+
+## Contributing
+If there is a bug you would like to fix or a feature you'd like to propose, you may make a Pull Request and it will be reviewed.
+
+### Translating
+If you would like to translate this mod into another language, you can do so by creating its respective language file in `src/main/resources/data/sswaystones/lang` and making a PR, all of the keys are in the default `en_us.json` and you can find a tutorial on how translations work on the [Fabric Wiki](https://fabricmc.net/wiki/tutorial:lang). (just make sure you make it in the `data` folder and not `assets`!)
