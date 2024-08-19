@@ -1,6 +1,8 @@
 package lol.sylvie.sswaystones.storage;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.minecraft.MinecraftProfileTextures;
+import com.mojang.authlib.yggdrasil.ProfileResult;
 import lol.sylvie.sswaystones.util.HashUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
@@ -14,6 +16,7 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -172,10 +175,17 @@ public final class WaystoneRecord {
         return icon;
     }
 
-    public ItemStack getIconOrHead() {
+    public ItemStack getIconOrHead(@Nullable MinecraftServer server) {
+        // Turns out, the server needs to fetch this! Oops!
+        GameProfile profile = new GameProfile(this.getOwnerUUID(), this.getOwnerName());
+        if (server != null && server.getSessionService().getTextures(profile) == MinecraftProfileTextures.EMPTY) {
+            ProfileResult fetched = server.getSessionService().fetchProfile(profile.getId(), false);
+            if (fetched != null) profile = fetched.profile();
+        }
+
         if (icon == null) {
             ItemStack head = Items.PLAYER_HEAD.getDefaultStack();
-            head.set(DataComponentTypes.PROFILE, new ProfileComponent(new GameProfile(this.getOwnerUUID(), this.getOwnerName())));
+            head.set(DataComponentTypes.PROFILE, new ProfileComponent(profile));
             return head;
         }
         return icon.getDefaultStack();

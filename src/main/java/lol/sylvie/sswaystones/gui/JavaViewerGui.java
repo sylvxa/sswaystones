@@ -1,5 +1,6 @@
 package lol.sylvie.sswaystones.gui;
 
+import com.mojang.authlib.GameProfile;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.*;
@@ -56,7 +57,7 @@ public class JavaViewerGui extends SimpleGui {
         for (int i = offset; i < this.discovered.size(); i++) {
             WaystoneRecord record = this.discovered.get(i);
 
-            this.setSlot(i - offset, new GuiElementBuilder(record.getIconOrHead())
+            this.setSlot(i - offset, new GuiElementBuilder(record.getIconOrHead(player.server))
                     .setName(record.getWaystoneText().copy().formatted(Formatting.YELLOW))
                     .setLore(List.of(Text.of(record.getOwnerName())))
                     .setCallback((index, type, action, gui) -> {
@@ -106,7 +107,7 @@ public class JavaViewerGui extends SimpleGui {
                         }));
             }
 
-            this.setSlot(51, new GuiElementBuilder(waystone.getIconOrHead())
+            this.setSlot(51, new GuiElementBuilder(waystone.getIconOrHead(player.server))
                     .setName(Text.translatable("gui.sswaystones.change_icon").formatted(Formatting.YELLOW))
                     .glow()
                     .setCallback((index, type, action, gui) -> this.changeIcon()));
@@ -202,7 +203,7 @@ public class JavaViewerGui extends SimpleGui {
                 this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE)
                     .setName(Text.translatable("gui.sswaystones.change_icon_instruction").formatted(Formatting.GRAY)));
             }
-            this.setSlot(4, waystone.getIconOrHead());
+            this.setSlot(4, waystone.getIconOrHead(player.server));
         }
 
         @Override
