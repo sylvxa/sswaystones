@@ -21,6 +21,7 @@ import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 public class WaystonesCommand {
 
@@ -48,12 +49,23 @@ public class WaystonesCommand {
                             false);
                     for (Map.Entry<String, Text> option : getConfigOptions().entrySet()) {
                         context.getSource().sendFeedback(() -> Text.translatable("command.sswaystones.config_format",
-                                option.getKey(), option.getValue()), false);
+                                formatKey(option.getKey()), option.getValue()), false);
                     }
+                    return 1;
+                })).then(literal("reload").executes(context -> {
+                    Waystones.configuration.load();
+                    context.getSource()
+                            .sendFeedback(() -> Text.translatable("command.sswaystones.config_reload_success"), false);
+                    return 1;
+                })).then(literal("save").executes(context -> {
+                    Waystones.configuration.save();
+                    context.getSource().sendFeedback(() -> Text.translatable("command.sswaystones.config_save_success"),
+                            false);
                     return 1;
                 })).then(literal("set").then(argument("key", StringArgumentType.word())
                         .then(argument("value", StringArgumentType.greedyString()).executes(context -> {
-                            Field field = getConfigByName(StringArgumentType.getString(context, "key"));
+                            String key = StringArgumentType.getString(context, "key");
+                            Field field = getConfigByName(key);
                             if (field == null)
                                 throw new CommandSyntaxException(
                                         CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument(),
@@ -82,9 +94,9 @@ public class WaystonesCommand {
                                         CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedInt(),
                                         Text.translatable("command.sswaystones.config_set_invalid_type"));
                             }
-                            context.getSource().sendFeedback(() -> Text
-                                    .translatable("command.sswaystones.config_set_success", field.getName(), value),
-                                    false);
+                            context.getSource()
+                                    .sendFeedback(() -> Text.translatable("command.sswaystones.config_set_success",
+                                            formatKey(key), formatValue(value)), false);
                             return 1;
                         }))))
                         .then(literal("get").then(argument("key", StringArgumentType.string()).executes(context -> {
@@ -98,8 +110,8 @@ public class WaystonesCommand {
 
                             context.getSource().sendFeedback(() -> {
                                 try {
-                                    return Text.translatable("command.sswaystones.config_format", key,
-                                            String.valueOf(field.get(instance)));
+                                    return Text.translatable("command.sswaystones.config_format", formatKey(key),
+                                            formatValue(field.get(instance)));
                                 } catch (IllegalAccessException e) {
                                     throw new RuntimeException(e);
                                 }
@@ -130,5 +142,13 @@ public class WaystonesCommand {
                 return field;
         }
         return null;
+    }
+
+    private static Text formatKey(String key) {
+        return Text.literal(key.toLowerCase()).formatted(Formatting.ITALIC, Formatting.WHITE);
+    }
+
+    private static Text formatValue(Object value) {
+        return Text.literal(String.valueOf(value)).formatted(Formatting.YELLOW);
     }
 }

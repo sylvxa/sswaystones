@@ -20,8 +20,8 @@ Polymer-based server sided Waystone mod, with Geyser and vanilla client support.
 ![Recipe for the Portable Waystone](assets/portable_waystone_recipe.png)
 
 ## Roadmap
-- [ ] Add optional XP price for teleporting.
-- [ ] More configuration
+- [x] Add optional XP price for teleporting.
+- [x] More configuration
 - [ ] More items (~~Portable Waystone~~, Scrolls, etc.)
 
 ## Contributing

@@ -8,7 +8,9 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTextures;
 import com.mojang.authlib.yggdrasil.ProfileResult;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.util.HashUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
@@ -28,9 +30,11 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -109,6 +113,19 @@ public final class WaystoneRecord {
     }
 
     public void handleTeleport(ServerPlayerEntity player) {
+        // Experience cost
+        int requiredXp = Waystones.configuration.getInstance().xpCost;
+        if (requiredXp > 0 && !player.isCreative()) {
+            if (player.experienceLevel < requiredXp) {
+                player.sendMessage(
+                        Text.translatable("error.sswaystones.not_enough_xp", requiredXp - player.experienceLevel)
+                                .formatted(Formatting.RED));
+                return;
+            } else {
+                player.addExperienceLevels(Math.min(-requiredXp, 0)); // Stop negative values from adding xp
+            }
+        }
+
         BlockPos target = this.getPos();
         assert player.getServer() != null;
         ServerWorld targetWorld = player.getServer().getWorld(this.getWorldKey());
@@ -118,27 +135,31 @@ public final class WaystoneRecord {
             return;
         }
 
-        // Search for suitable teleport location.
-        // It looked weird starting on a corner so I make it try a cardinal direction
-        // first
-        if (targetWorld.getBlockState(target.add(-1, -1, 0)).isAir()) {
-            boolean foundTarget = false;
-            searchloop : for (int x = -1; x <= 1; x++) {
-                for (int z = -1; z <= 1; z++) {
-                    BlockState state = targetWorld.getBlockState(target.add(x, -1, z));
-                    if (!state.isAir()) {
-                        target = target.add(x, 0, z);
-                        foundTarget = true;
-                        break searchloop;
-                    }
-                }
-            }
+        // Search for a suitable teleport location
+        List<Vec3i> positionChecks = List.of(new Vec3i(-1, -1, 0), new Vec3i(1, -1, 0), new Vec3i(0, -1, -1),
+                new Vec3i(0, -1, 1), new Vec3i(-1, -1, -1), new Vec3i(1, -1, 1), new Vec3i(1, -1, -1),
+                new Vec3i(-1, -1, 1), new Vec3i(0, 0, 0));
 
-            if (!foundTarget) {
-                target = target.add(0, 2, 0);
+        for (Vec3i checkPos : positionChecks) {
+            BlockPos ground = target.add(checkPos);
+            BlockPos feet = ground.add(0, 1, 0);
+            BlockPos head = feet.add(0, 1, 0);
+
+            if (!targetWorld.getBlockState(ground).getCollisionShape(targetWorld, ground).isEmpty()
+                    && targetWorld.getBlockState(feet).getCollisionShape(targetWorld, feet).isEmpty()
+                    && targetWorld.getBlockState(head).getCollisionShape(targetWorld, head).isEmpty()) {
+                target = feet;
+                break;
             }
-        } else {
-            target = target.add(-1, 0, 0);
+        }
+
+        // Remove any blocks trying to suffocate the player
+        BlockPos head = target.add(0, 1, 0);
+        BlockState headState = targetWorld.getBlockState(head);
+        if (!headState.getCollisionShape(targetWorld, head).isEmpty()) {
+            if (headState.getHardness(targetWorld, head) != -1) {
+                targetWorld.breakBlock(pos, true);
+            }
         }
 
         // Teleport!
