@@ -1,5 +1,11 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.gui;
 
+import java.util.Comparator;
+import java.util.List;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.NameGenerator;
@@ -12,22 +18,21 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Comparator;
-import java.util.List;
-
 public class GeyserViewerGui {
     private static final String CRAFATAR = "https://crafatar.com/avatars/%s?overlay";
 
     public static boolean openGuiIfBedrock(ServerPlayerEntity player, @Nullable WaystoneRecord waystone) {
         GeyserConnection connection = GeyserApi.api().connectionByUuid(player.getUuid());
-        if (connection == null) return false;
+        if (connection == null)
+            return false;
 
         SimpleForm form = GeyserViewerGui.getViewerForm(player, connection, waystone);
         connection.sendForm(form);
         return true;
     }
 
-    public static SimpleForm getViewerForm(ServerPlayerEntity player, GeyserConnection connection, @Nullable WaystoneRecord waystone) {
+    public static SimpleForm getViewerForm(ServerPlayerEntity player, GeyserConnection connection,
+            @Nullable WaystoneRecord waystone) {
         String title = "Waystones";
         if (waystone != null) {
             title = String.format("%s [%s]", waystone.getWaystoneName(), waystone.getOwnerName());
@@ -38,17 +43,18 @@ public class GeyserViewerGui {
         assert player.getServer() != null; // It's a ServerPlayerEntity.
         WaystoneStorage storage = WaystoneStorage.getServerState(player.getServer());
         List<WaystoneRecord> discovered = storage.getDiscoveredWaystones(player).stream()
-                .filter(r -> !r.equals(waystone))
-                .sorted(Comparator.comparing(WaystoneRecord::getWaystoneName))
+                .filter(r -> !r.equals(waystone)).sorted(Comparator.comparing(WaystoneRecord::getWaystoneName))
                 .toList();
 
         for (WaystoneRecord record : discovered) {
-            ButtonComponent component = ButtonComponent.of(record.getWaystoneName(), FormImage.Type.URL, CRAFATAR.replace("%s", record.getOwnerUUID().toString()));
+            ButtonComponent component = ButtonComponent.of(record.getWaystoneName(), FormImage.Type.URL,
+                    CRAFATAR.replace("%s", record.getOwnerUUID().toString()));
             builder.button(component);
         }
 
         boolean showSettingsButton = waystone != null && waystone.canEdit(player);
-        if (showSettingsButton) builder.button("Settings", FormImage.Type.PATH, "textures/gui/newgui/anvil-hammer.png");
+        if (showSettingsButton)
+            builder.button("Settings", FormImage.Type.PATH, "textures/gui/newgui/anvil-hammer.png");
 
         builder.validResultHandler(response -> {
             int selectedIndex = response.clickedButtonId();
@@ -76,7 +82,8 @@ public class GeyserViewerGui {
 
         builder.validResultHandler(response -> {
             String name = response.asInput();
-            if (name == null) return;
+            if (name == null)
+                return;
 
             boolean global = response.asToggle();
 

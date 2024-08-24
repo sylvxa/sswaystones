@@ -1,3 +1,7 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.item;
 
 import eu.pb4.polymer.core.api.item.PolymerItemUtils;
@@ -17,18 +21,20 @@ import org.jetbrains.annotations.Nullable;
 
 public class PortableWaystoneItem extends SimplePolymerItem {
     public PortableWaystoneItem(Settings settings) {
-        super(settings, Items.ENDER_PEARL);
+        super(settings, Items.ENDER_EYE);
     }
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        if (user instanceof ServerPlayerEntity player) ViewerUtil.openGui(player, null);
+        if (user instanceof ServerPlayerEntity player)
+            ViewerUtil.openGui(player, null);
 
         return TypedActionResult.consume(user.getStackInHand(hand));
     }
 
     @Override
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType tooltipType, RegistryWrapper.WrapperLookup lookup, @Nullable ServerPlayerEntity player) {
+    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType tooltipType,
+            RegistryWrapper.WrapperLookup lookup, @Nullable ServerPlayerEntity player) {
         ItemStack out = PolymerItemUtils.createItemStack(itemStack, lookup, player);
         out.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
         return out;

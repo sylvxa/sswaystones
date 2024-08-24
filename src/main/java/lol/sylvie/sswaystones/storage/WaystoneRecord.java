@@ -1,8 +1,14 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.storage;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTextures;
 import com.mojang.authlib.yggdrasil.ProfileResult;
+import java.util.Arrays;
+import java.util.UUID;
 import lol.sylvie.sswaystones.util.HashUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
@@ -28,9 +34,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.UUID;
-
 public final class WaystoneRecord {
     private UUID owner;
     private String ownerName;
@@ -40,7 +43,8 @@ public final class WaystoneRecord {
     private boolean global;
     private Item icon;
 
-    public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world, boolean global, @Nullable Item icon) {
+    public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world,
+            boolean global, @Nullable Item icon) {
         this.owner = owner;
         this.ownerName = ownerName;
         this.setWaystoneName(waystoneName); // Limits waystone name
@@ -71,7 +75,8 @@ public final class WaystoneRecord {
 
         waystoneTag.putBoolean("global", global);
 
-        if (icon != null) waystoneTag.putString("icon", icon.toString());
+        if (icon != null)
+            waystoneTag.putString("icon", icon.toString());
 
         return waystoneTag;
     }
@@ -99,7 +104,8 @@ public final class WaystoneRecord {
             }
         }
 
-        return new WaystoneRecord(waystoneOwner, waystoneOwnerName, waystoneName, position, worldRegistryKey, global, icon);
+        return new WaystoneRecord(waystoneOwner, waystoneOwnerName, waystoneName, position, worldRegistryKey, global,
+                icon);
     }
 
     public void handleTeleport(ServerPlayerEntity player) {
@@ -113,11 +119,11 @@ public final class WaystoneRecord {
         }
 
         // Search for suitable teleport location.
-        // It looked weird starting on a corner so I make it try a cardinal direction first
+        // It looked weird starting on a corner so I make it try a cardinal direction
+        // first
         if (targetWorld.getBlockState(target.add(-1, -1, 0)).isAir()) {
             boolean foundTarget = false;
-            searchloop:
-            for (int x = -1; x <= 1; x++) {
+            searchloop : for (int x = -1; x <= 1; x++) {
                 for (int z = -1; z <= 1; z++) {
                     BlockState state = targetWorld.getBlockState(target.add(x, -1, z));
                     if (!state.isAir()) {
@@ -135,12 +141,12 @@ public final class WaystoneRecord {
             target = target.add(-1, 0, 0);
         }
 
-
         // Teleport!
         Vec3d center = target.toBottomCenterPos();
         player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), player.getYaw(), player.getPitch());
         targetWorld.playSound(null, target, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1f);
-        targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(), 16, 0.5d, 0.5d, 0.5d, 0.1d);
+        targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(), 16,
+                0.5d, 0.5d, 0.5d, 0.1d);
     }
 
     public UUID getOwnerUUID() {
@@ -180,7 +186,8 @@ public final class WaystoneRecord {
         GameProfile profile = new GameProfile(this.getOwnerUUID(), this.getOwnerName());
         if (server != null && server.getSessionService().getTextures(profile) == MinecraftProfileTextures.EMPTY) {
             ProfileResult fetched = server.getSessionService().fetchProfile(profile.getId(), false);
-            if (fetched != null) profile = fetched.profile();
+            if (fetched != null)
+                profile = fetched.profile();
         }
 
         if (icon == null) {

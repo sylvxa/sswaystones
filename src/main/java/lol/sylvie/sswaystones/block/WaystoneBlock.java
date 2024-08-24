@@ -1,3 +1,7 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.block;
 
 import com.mojang.serialization.MapCodec;
@@ -37,12 +41,9 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
     // Visuals
     @Override
     public BlockState getPolymerBlockState(BlockState state) {
-        return Blocks.STONE_BRICK_WALL.getDefaultState()
-                .with(WallBlock.UP, true)
-                .with(WallBlock.EAST_SHAPE, WallShape.LOW)
-                .with(WallBlock.WEST_SHAPE, WallShape.LOW)
-                .with(WallBlock.NORTH_SHAPE, WallShape.LOW)
-                .with(WallBlock.SOUTH_SHAPE, WallShape.LOW);
+        return Blocks.STONE_BRICK_WALL.getDefaultState().with(WallBlock.UP, true)
+                .with(WallBlock.EAST_SHAPE, WallShape.LOW).with(WallBlock.WEST_SHAPE, WallShape.LOW)
+                .with(WallBlock.NORTH_SHAPE, WallShape.LOW).with(WallBlock.SOUTH_SHAPE, WallShape.LOW);
     }
 
     // Should be indestructible by TNT, also lets me ignore some edge cases.
@@ -64,16 +65,19 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
 
     // Placing & breaking
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer,
+            ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
 
-        if (world.isClient || placer == null) return;
+        if (world.isClient || placer == null)
+            return;
         makeWaystoneHere(pos, world, placer);
     }
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (world.isClient()) return super.onBreak(world, pos, state, player);
+        if (world.isClient())
+            return super.onBreak(world, pos, state, player);
 
         assert world.getServer() != null;
         WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
@@ -83,7 +87,8 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
             waystoneBlockEntity.removeDisplay();
         }
 
-        if (record != null) storage.destroyWaystone(record);
+        if (record != null)
+            storage.destroyWaystone(record);
 
         return super.onBreak(world, pos, state, player);
     }
@@ -106,9 +111,9 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
 
             if (!playerData.discoveredWaystones.contains(waystoneHash)) {
                 playerData.discoveredWaystones.add(waystoneHash);
-                player.sendMessage(
-                        Text.translatable("message.sswaystones.discovered", record.getWaystoneText().copy()
-                        .formatted(Formatting.BOLD, Formatting.GOLD))
+                player.sendMessage(Text
+                        .translatable("message.sswaystones.discovered",
+                                record.getWaystoneText().copy().formatted(Formatting.BOLD, Formatting.GOLD))
                         .formatted(Formatting.DARK_PURPLE));
             }
 
@@ -126,9 +131,11 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state,
+            BlockEntityType<T> type) {
         if (type.equals(ModBlocks.WAYSTONE_BLOCK_ENTITY)) {
-            return (tickerWorld, pos, tickerState, blockEntity) -> WaystoneBlockEntity.tick(tickerWorld, (WaystoneBlockEntity) blockEntity);
+            return (tickerWorld, pos, tickerState, blockEntity) -> WaystoneBlockEntity.tick(tickerWorld,
+                    (WaystoneBlockEntity) blockEntity);
         }
         return null;
     }

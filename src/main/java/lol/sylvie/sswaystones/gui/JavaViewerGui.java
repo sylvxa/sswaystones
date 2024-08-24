@@ -1,9 +1,14 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.gui;
 
-import com.mojang.authlib.GameProfile;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.*;
+import java.util.Comparator;
+import java.util.List;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import net.minecraft.item.ItemStack;
@@ -14,9 +19,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Comparator;
-import java.util.List;
 
 public class JavaViewerGui extends SimpleGui {
     private static final int ITEMS_PER_PAGE = 9 * 5;
@@ -32,10 +34,8 @@ public class JavaViewerGui extends SimpleGui {
 
         assert player.getServer() != null; // It's a ServerPlayerEntity.
         WaystoneStorage storage = WaystoneStorage.getServerState(player.getServer());
-        this.discovered = storage.getDiscoveredWaystones(player).stream()
-                .filter(r -> !r.equals(waystone))
-                .sorted(Comparator.comparing(WaystoneRecord::getWaystoneName))
-                .toList();
+        this.discovered = storage.getDiscoveredWaystones(player).stream().filter(r -> !r.equals(waystone))
+                .sorted(Comparator.comparing(WaystoneRecord::getWaystoneName)).toList();
         this.maxPages = Math.ceilDiv(this.discovered.size(), ITEMS_PER_PAGE);
     }
 
@@ -43,7 +43,8 @@ public class JavaViewerGui extends SimpleGui {
         // If there are no other waystones this will display as 0
         int displayMaxPages = Math.max(maxPages, 1);
         if (waystone != null) {
-            this.setTitle(Text.literal(String.format("%s [%s] (%s/%s)", waystone.getWaystoneName(), waystone.getOwnerName(), pageIndex + 1, displayMaxPages)));
+            this.setTitle(Text.literal(String.format("%s [%s] (%s/%s)", waystone.getWaystoneName(),
+                    waystone.getOwnerName(), pageIndex + 1, displayMaxPages)));
         } else {
             this.setTitle(Text.literal(String.format("Waystones (%s/%s)", pageIndex + 1, displayMaxPages)));
         }
@@ -59,8 +60,7 @@ public class JavaViewerGui extends SimpleGui {
 
             this.setSlot(i - offset, new GuiElementBuilder(record.getIconOrHead(player.server))
                     .setName(record.getWaystoneText().copy().formatted(Formatting.YELLOW))
-                    .setLore(List.of(Text.of(record.getOwnerName())))
-                    .setCallback((index, type, action, gui) -> {
+                    .setLore(List.of(Text.of(record.getOwnerName()))).setCallback((index, type, action, gui) -> {
                         record.handleTeleport(player);
                         gui.close();
                     }));
@@ -80,54 +80,50 @@ public class JavaViewerGui extends SimpleGui {
         }
 
         // Gui controls
-        this.setSlot(45, new GuiElementBuilder()
-                .setItem(Items.PLAYER_HEAD)
-                .setSkullOwner(arrowLeft, null, null)
-                .setName(Text.translatable("gui.sswaystones.page_previous"))
-                .setCallback((index, type, action, gui) -> previousPage()));
+        this.setSlot(45,
+                new GuiElementBuilder().setItem(Items.PLAYER_HEAD).setSkullOwner(arrowLeft, null, null)
+                        .setName(Text.translatable("gui.sswaystones.page_previous"))
+                        .setCallback((index, type, action, gui) -> previousPage()));
 
-        this.setSlot(47, new GuiElementBuilder()
-                .setItem(Items.PLAYER_HEAD)
-                .setSkullOwner(arrowRight, null, null)
-                .setName(Text.translatable("gui.sswaystones.page_next"))
-                .setCallback((index, type, action, gui) -> nextPage()));
+        this.setSlot(47,
+                new GuiElementBuilder().setItem(Items.PLAYER_HEAD).setSkullOwner(arrowRight, null, null)
+                        .setName(Text.translatable("gui.sswaystones.page_next"))
+                        .setCallback((index, type, action, gui) -> nextPage()));
 
         // Waystone settings
-        if (waystone == null) return;
+        if (waystone == null)
+            return;
 
         if (waystone.canEdit(player)) {
             if (player.hasPermissionLevel(4)) {
-                this.setSlot(50, new GuiElementBuilder()
-                        .setItem(Items.PLAYER_HEAD)
-                        .setSkullOwner(companionCube)
-                        .setName(Text.translatable("gui.sswaystones.steal_waystone"))
-                        .setCallback((index, type, action, gui) -> {
-                            waystone.setOwner(player);
-                            this.updateMenu();
-                        }));
+                this.setSlot(50,
+                        new GuiElementBuilder().setItem(Items.PLAYER_HEAD).setSkullOwner(companionCube)
+                                .setName(Text.translatable("gui.sswaystones.steal_waystone"))
+                                .setCallback((index, type, action, gui) -> {
+                                    waystone.setOwner(player);
+                                    this.updateMenu();
+                                }));
             }
 
-            this.setSlot(51, new GuiElementBuilder(waystone.getIconOrHead(player.server))
-                    .setName(Text.translatable("gui.sswaystones.change_icon").formatted(Formatting.YELLOW))
-                    .glow()
-                    .setCallback((index, type, action, gui) -> this.changeIcon()));
+            this.setSlot(51,
+                    new GuiElementBuilder(waystone.getIconOrHead(player.server))
+                            .setName(Text.translatable("gui.sswaystones.change_icon").formatted(Formatting.YELLOW))
+                            .glow().setCallback((index, type, action, gui) -> this.changeIcon()));
 
-            this.setSlot(52, new GuiElementBuilder()
-                    .setItem(Items.PLAYER_HEAD)
-                    .setSkullOwner(anvil)
-                    .setName(Text.translatable("gui.sswaystones.change_name"))
-                    .setCallback((index, type, action, gui) -> this.changeName()));
+            this.setSlot(52,
+                    new GuiElementBuilder().setItem(Items.PLAYER_HEAD).setSkullOwner(anvil)
+                            .setName(Text.translatable("gui.sswaystones.change_name"))
+                            .setCallback((index, type, action, gui) -> this.changeName()));
 
             boolean global = this.waystone.isGlobal();
-            this.setSlot(53, new GuiElementBuilder()
-                    .setItem(Items.PLAYER_HEAD)
-                    .setSkullOwner(globe)
-                    .setName(Text.translatable("gui.sswaystones.toggle_global").formatted(global ? Formatting.GREEN : Formatting.RED))
-                    .glow(global)
-                    .setCallback((index, type, action, gui) -> {
-                        this.waystone.setGlobal(!global);
-                        this.updateMenu();
-                    }));
+            this.setSlot(53,
+                    new GuiElementBuilder().setItem(Items.PLAYER_HEAD).setSkullOwner(globe)
+                            .setName(Text.translatable("gui.sswaystones.toggle_global")
+                                    .formatted(global ? Formatting.GREEN : Formatting.RED))
+                            .glow(global).setCallback((index, type, action, gui) -> {
+                                this.waystone.setGlobal(!global);
+                                this.updateMenu();
+                            }));
         }
     }
 
@@ -164,16 +160,11 @@ public class JavaViewerGui extends SimpleGui {
         anvilGui.setDefaultInputValue(waystone.getWaystoneName());
         String checkmark = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTc5YTVjOTVlZTE3YWJmZWY0NWM4ZGMyMjQxODk5NjQ5NDRkNTYwZjE5YTQ0ZjE5ZjhhNDZhZWYzZmVlNDc1NiJ9fX0=";
 
-        anvilGui.setSlot(1, new GuiElementBuilder()
-                .setItem(Items.BARRIER)
-                .setName(Text.translatable("gui.back"))
+        anvilGui.setSlot(1, new GuiElementBuilder().setItem(Items.BARRIER).setName(Text.translatable("gui.back"))
                 .setCallback((index, type, action, gui) -> gui.close()));
 
-        anvilGui.setSlot(2, new GuiElementBuilder()
-                .setItem(Items.PLAYER_HEAD)
-                .setSkullOwner(checkmark)
-                .setName(Text.translatable("gui.done"))
-                .setCallback((index, type, action, gui) -> {
+        anvilGui.setSlot(2, new GuiElementBuilder().setItem(Items.PLAYER_HEAD).setSkullOwner(checkmark)
+                .setName(Text.translatable("gui.done")).setCallback((index, type, action, gui) -> {
                     String input = anvilGui.getInput();
                     waystone.setWaystoneName(input);
                     gui.close();
@@ -200,8 +191,8 @@ public class JavaViewerGui extends SimpleGui {
 
         private void updateMenu() {
             for (int i = 0; i < 9; i++) {
-                this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE)
-                    .setName(Text.translatable("gui.sswaystones.change_icon_instruction").formatted(Formatting.GRAY)));
+                this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE).setName(
+                        Text.translatable("gui.sswaystones.change_icon_instruction").formatted(Formatting.GRAY)));
             }
             this.setSlot(4, waystone.getIconOrHead(player.server));
         }
@@ -209,7 +200,8 @@ public class JavaViewerGui extends SimpleGui {
         @Override
         public boolean onAnyClick(int index, ClickType type, SlotActionType action) {
             if (index > 8 && action.equals(SlotActionType.PICKUP)) {
-                if (index > 35) index -= 36; // Get hotbar slot
+                if (index > 35)
+                    index -= 36; // Get hotbar slot
                 ItemStack stack = player.getInventory().getStack(index);
 
                 if (stack != null && !stack.isOf(Items.AIR)) {

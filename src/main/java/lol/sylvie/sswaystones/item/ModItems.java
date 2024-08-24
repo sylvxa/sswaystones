@@ -1,3 +1,7 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.item;
 
 import eu.pb4.polymer.core.api.item.PolymerItemGroupUtils;
@@ -12,22 +16,18 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 
 public class ModItems {
-    public static final Item WAYSTONE = register(new WaystoneBlockItem(
-            new Item.Settings().rarity(Rarity.RARE)),
+    public static final Item WAYSTONE = register(new WaystoneBlockItem(new Item.Settings().rarity(Rarity.RARE)),
             "waystone");
 
-    public static final Item PORTABLE_WAYSTONE = register(new PortableWaystoneItem(
-            new Item.Settings().rarity(Rarity.EPIC).maxCount(1)),
-            "portable_waystone");
+    public static final Item PORTABLE_WAYSTONE = register(
+            new PortableWaystoneItem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1)), "portable_waystone");
 
     public static final ItemGroup ITEM_GROUP = PolymerItemGroupUtils.builder()
             .displayName(Text.translatable("itemGroup.sswaystones.item_group"))
-            .icon(Items.STONE_BRICK_WALL::getDefaultStack)
-            .entries((context, entries) -> {
+            .icon(Items.STONE_BRICK_WALL::getDefaultStack).entries((context, entries) -> {
                 entries.add(WAYSTONE);
                 entries.add(PORTABLE_WAYSTONE);
-            })
-            .build();
+            }).build();
 
     public static Item register(Item item, String name) {
         // Register the item

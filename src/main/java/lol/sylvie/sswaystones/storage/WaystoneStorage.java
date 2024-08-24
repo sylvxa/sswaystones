@@ -1,5 +1,10 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.storage;
 
+import java.util.*;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.util.NameGenerator;
 import net.minecraft.entity.LivingEntity;
@@ -11,18 +16,12 @@ import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.World;
 
-import java.util.*;
-
 public class WaystoneStorage extends PersistentState {
     public HashMap<String, WaystoneRecord> waystones = new HashMap<>();
     public HashMap<UUID, PlayerData> players = new HashMap<>();
 
-
-    private static final Type<WaystoneStorage> TYPE = new Type<>(
-            WaystoneStorage::new,
-            WaystoneStorage::createFromNbt,
-            null
-    );
+    private static final Type<WaystoneStorage> TYPE = new Type<>(WaystoneStorage::new, WaystoneStorage::createFromNbt,
+            null);
 
     // Serialization
     @Override
@@ -62,7 +61,8 @@ public class WaystoneStorage extends PersistentState {
     }
 
     public static WaystoneStorage getServerState(MinecraftServer server) {
-        PersistentStateManager persistentStateManager = Objects.requireNonNull(server.getWorld(World.OVERWORLD)).getPersistentStateManager();
+        PersistentStateManager persistentStateManager = Objects.requireNonNull(server.getWorld(World.OVERWORLD))
+                .getPersistentStateManager();
         WaystoneStorage state = persistentStateManager.getOrCreate(TYPE, Waystones.MOD_ID);
 
         state.markDirty();
@@ -84,7 +84,8 @@ public class WaystoneStorage extends PersistentState {
 
     // Create a waystone
     public WaystoneRecord createWaystone(BlockPos pos, World world, LivingEntity player) {
-        WaystoneRecord record = new WaystoneRecord(player.getUuid(), player.getName().getString(), NameGenerator.generateName(), pos, world.getRegistryKey(), false, null);
+        WaystoneRecord record = new WaystoneRecord(player.getUuid(), player.getName().getString(),
+                NameGenerator.generateName(), pos, world.getRegistryKey(), false, null);
         String hash = record.getHash();
         this.waystones.put(hash, record);
 
@@ -97,11 +98,9 @@ public class WaystoneStorage extends PersistentState {
     public List<WaystoneRecord> getDiscoveredWaystones(LivingEntity player) {
         PlayerData playerData = getPlayerState(player);
 
-        return this.waystones.entrySet()
-                .stream()
+        return this.waystones.entrySet().stream()
                 .filter(r -> playerData.discoveredWaystones.contains(r.getKey()) || r.getValue().isGlobal())
-                .map(Map.Entry::getValue)
-                .toList();
+                .map(Map.Entry::getValue).toList();
     }
 
     // Make all players forget about waystone

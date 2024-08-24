@@ -1,13 +1,16 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.util;
-
-import lol.sylvie.sswaystones.storage.WaystoneRecord;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import lol.sylvie.sswaystones.storage.WaystoneRecord;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 public class HashUtil {
     public static String waystoneIdentifier(BlockPos pos, RegistryKey<World> world) {

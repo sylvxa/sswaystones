@@ -1,29 +1,27 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.block;
 
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
-import eu.pb4.polymer.virtualentity.api.attachment.HolderAttachment;
-import eu.pb4.polymer.virtualentity.api.elements.EntityElement;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
+import java.util.Random;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.HashUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.item.Items;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
-
-import java.util.Random;
 
 public class WaystoneBlockEntity extends BlockEntity {
     private static final Random RANDOM = new Random();
@@ -53,11 +51,13 @@ public class WaystoneBlockEntity extends BlockEntity {
         // Particles
         if (RANDOM.nextInt(0, 20) == 0 && world instanceof ServerWorld serverWorld) {
             Vec3d pos = waystoneEntity.getPos().add(0, 1, 0).toCenterPos();
-            serverWorld.spawnParticles(new DustParticleEffect(new Vector3f(1f, 0f, 0f), 1f), pos.getX(), pos.getY(), pos.getZ(), 8, 0.1d, 0.1d, 0.1d, 0.1d);
+            serverWorld.spawnParticles(new DustParticleEffect(new Vector3f(1f, 0f, 0f), 1f), pos.getX(), pos.getY(),
+                    pos.getZ(), 8, 0.1d, 0.1d, 0.1d, 0.1d);
         }
 
         // Waystone title
-        if (waystoneEntity.nameDisplay == null) return;
+        if (waystoneEntity.nameDisplay == null)
+            return;
         waystoneEntity.nameDisplay.setText(waystoneEntity.waystone.getWaystoneText());
 
         // Bob up and down
@@ -66,7 +66,8 @@ public class WaystoneBlockEntity extends BlockEntity {
     }
 
     private WaystoneRecord getThisWaystone(World world) {
-        if (world.isClient()) return null;
+        if (world.isClient())
+            return null;
         assert world.getServer() != null; // World can't be client.
 
         // Grab waystone if it isn't there
@@ -102,12 +103,14 @@ public class WaystoneBlockEntity extends BlockEntity {
         }
 
         attachment = (ChunkAttachment) ChunkAttachment.ofTicking(holder, (ServerWorld) world, pos);
-
     }
 
     public void removeDisplay() {
-        if (eyeDisplay != null) holder.removeElement(eyeDisplay);
-        if (nameDisplay != null) holder.removeElement(nameDisplay);
-        if (attachment != null) attachment.destroy();
+        if (eyeDisplay != null)
+            holder.removeElement(eyeDisplay);
+        if (nameDisplay != null)
+            holder.removeElement(nameDisplay);
+        if (attachment != null)
+            attachment.destroy();
     }
 }
