@@ -6,6 +6,7 @@ package lol.sylvie.sswaystones.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import java.io.*;
 import java.nio.file.Path;
@@ -38,9 +39,13 @@ public class Configuration {
 
     public void load() {
         try (FileReader reader = new FileReader(configFile)) {
-            instance = GSON.fromJson(reader, Instance.class);
+            Instance loaded = GSON.fromJson(reader, Instance.class);
+            if (loaded != null)
+                instance = loaded;
         } catch (IOException exception) {
             Waystones.LOGGER.warn("Could not load configuration from disk!", exception);
+        } catch (JsonSyntaxException exception) {
+            Waystones.LOGGER.warn("Invalid configuration!", exception);
         }
     }
 
