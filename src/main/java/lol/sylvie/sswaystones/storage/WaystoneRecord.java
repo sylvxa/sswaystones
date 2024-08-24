@@ -13,6 +13,7 @@ import java.util.UUID;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.util.HashUtil;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.player.PlayerEntity;
@@ -119,7 +120,8 @@ public final class WaystoneRecord {
             if (player.experienceLevel < requiredXp) {
                 player.sendMessage(
                         Text.translatable("error.sswaystones.not_enough_xp", requiredXp - player.experienceLevel)
-                                .formatted(Formatting.RED));
+                                .formatted(Formatting.RED),
+                        true);
                 return;
             } else {
                 player.addExperienceLevels(Math.min(-requiredXp, 0)); // Stop negative values from adding xp
@@ -135,10 +137,31 @@ public final class WaystoneRecord {
             return;
         }
 
+        if (Waystones.configuration.getInstance().safeTeleport) {
+            // Remove any blocks trying to suffocate the player
+            BlockPos head = target.add(0, 1, 0);
+            BlockState headState = targetWorld.getBlockState(head);
+            if (!headState.getCollisionShape(targetWorld, head).isEmpty()) {
+                if (headState.getHardness(targetWorld, head) != -1) {
+                    player.getServer().executeSync(() -> targetWorld.breakBlock(head, true));
+                }
+            }
+
+            // Make sure there is a platform beneath the waystone
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    BlockPos ground = this.pos.add(x, -1, z);
+                    if (targetWorld.getBlockState(ground).isAir()) {
+                        targetWorld.setBlockState(ground, Blocks.COBBLESTONE.getDefaultState());
+                    }
+                }
+            }
+        }
+
         // Search for a suitable teleport location
         List<Vec3i> positionChecks = List.of(new Vec3i(-1, -1, 0), new Vec3i(1, -1, 0), new Vec3i(0, -1, -1),
                 new Vec3i(0, -1, 1), new Vec3i(-1, -1, -1), new Vec3i(1, -1, 1), new Vec3i(1, -1, -1),
-                new Vec3i(-1, -1, 1), new Vec3i(0, 0, 0));
+                new Vec3i(-1, -1, 1));
 
         for (Vec3i checkPos : positionChecks) {
             BlockPos ground = target.add(checkPos);
@@ -150,15 +173,6 @@ public final class WaystoneRecord {
                     && targetWorld.getBlockState(head).getCollisionShape(targetWorld, head).isEmpty()) {
                 target = feet;
                 break;
-            }
-        }
-
-        // Remove any blocks trying to suffocate the player
-        BlockPos head = target.add(0, 1, 0);
-        BlockState headState = targetWorld.getBlockState(head);
-        if (!headState.getCollisionShape(targetWorld, head).isEmpty()) {
-            if (headState.getHardness(targetWorld, head) != -1) {
-                targetWorld.breakBlock(pos, true);
             }
         }
 

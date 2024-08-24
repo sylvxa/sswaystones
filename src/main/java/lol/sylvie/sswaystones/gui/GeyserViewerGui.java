@@ -19,7 +19,7 @@ import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.jetbrains.annotations.Nullable;
 
 public class GeyserViewerGui {
-    private static final String CRAFATAR = "https://crafatar.com/avatars/%s?overlay";
+    private static final String AVATAR_API = "https://api.tydiumcraft.net/v1/players/skin?uuid=%s&type=avatar";
 
     public static boolean openGuiIfBedrock(ServerPlayerEntity player, @Nullable WaystoneRecord waystone) {
         GeyserConnection connection = GeyserApi.api().connectionByUuid(player.getUuid());
@@ -48,7 +48,7 @@ public class GeyserViewerGui {
 
         for (WaystoneRecord record : discovered) {
             ButtonComponent component = ButtonComponent.of(record.getWaystoneName(), FormImage.Type.URL,
-                    CRAFATAR.replace("%s", record.getOwnerUUID().toString()));
+                    AVATAR_API.replace("%s", record.getOwnerUUID().toString()));
             builder.button(component);
         }
 

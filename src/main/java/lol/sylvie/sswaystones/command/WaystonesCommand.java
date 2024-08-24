@@ -75,6 +75,7 @@ public class WaystonesCommand {
 
                             Class<?> type = field.getType();
                             String value = StringArgumentType.getString(context, "value");
+                            Object newValue;
                             try {
                                 if (type == int.class) {
                                     field.set(instance, Integer.parseInt(value));
@@ -87,6 +88,7 @@ public class WaystonesCommand {
                                 } else if (type == String.class) {
                                     field.set(instance, value);
                                 }
+                                newValue = field.get(instance);
                             } catch (IllegalAccessException e) {
                                 throw new RuntimeException(e);
                             } catch (NumberFormatException e) {
@@ -96,7 +98,7 @@ public class WaystonesCommand {
                             }
                             context.getSource()
                                     .sendFeedback(() -> Text.translatable("command.sswaystones.config_set_success",
-                                            formatKey(key), formatValue(value)), false);
+                                            formatKey(key), formatValue(newValue)), false);
                             return 1;
                         }))))
                         .then(literal("get").then(argument("key", StringArgumentType.string()).executes(context -> {

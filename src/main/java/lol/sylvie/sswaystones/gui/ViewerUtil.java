@@ -11,9 +11,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class ViewerUtil {
     public static void openGui(ServerPlayerEntity player, @Nullable WaystoneRecord record) {
+
         if (FabricLoader.getInstance().isModLoaded("geyser-fabric")) {
-            if (GeyserViewerGui.openGuiIfBedrock(player, record))
+            if (GeyserViewerGui.openGuiIfBedrock(player, record)) {
                 return;
+            }
+
         }
 
         JavaViewerGui gui = new JavaViewerGui(player, record);

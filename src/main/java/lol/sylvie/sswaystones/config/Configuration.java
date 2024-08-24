@@ -49,5 +49,9 @@ public class Configuration {
         @SerializedName("xp_cost")
         @Description(translation = "config.sswaystones.xp_cost")
         public int xpCost = 0;
+
+        @SerializedName("paranoid_teleport")
+        @Description(translation = "config.sswaystones.paranoid_teleport")
+        public boolean safeTeleport = true;
     }
 }
