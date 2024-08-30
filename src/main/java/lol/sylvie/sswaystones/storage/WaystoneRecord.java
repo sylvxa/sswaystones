@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import lol.sylvie.sswaystones.Waystones;
+import lol.sylvie.sswaystones.block.ModBlocks;
+import lol.sylvie.sswaystones.config.Configuration;
 import lol.sylvie.sswaystones.util.HashUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -114,8 +116,9 @@ public final class WaystoneRecord {
     }
 
     public void handleTeleport(ServerPlayerEntity player) {
+        Configuration.Instance config = Waystones.configuration.getInstance();
         // Experience cost
-        int requiredXp = Waystones.configuration.getInstance().xpCost;
+        int requiredXp = config.xpCost;
         if (requiredXp > 0 && !player.isCreative()) {
             if (player.experienceLevel < requiredXp) {
                 player.sendMessage(
@@ -128,16 +131,25 @@ public final class WaystoneRecord {
             }
         }
 
+        MinecraftServer server = player.getServer();
+        assert server != null;
+
         BlockPos target = this.getPos();
-        assert player.getServer() != null;
-        ServerWorld targetWorld = player.getServer().getWorld(this.getWorldKey());
+        ServerWorld targetWorld = this.getWorld(server);
 
         if (targetWorld == null) {
-            player.sendMessage(Text.translatable("error.sswaystones.no_dimension"));
+            player.sendMessage(Text.translatable("error.sswaystones.no_dimension").formatted(Formatting.RED));
             return;
         }
 
-        if (Waystones.configuration.getInstance().safeTeleport) {
+        // Remove invalid waystones
+        if (!targetWorld.getBlockState(target).isOf(ModBlocks.WAYSTONE) && config.removeInvalidWaystones) {
+            WaystoneStorage.getServerState(server).destroyWaystone(server, this);
+            player.sendMessage(Text.translatable("error.sswaystones.invalid_waystone").formatted(Formatting.RED));
+            return;
+        }
+
+        if (config.safeTeleport) {
             // Remove any blocks trying to suffocate the player
             BlockPos head = target.add(0, 1, 0);
             BlockState headState = targetWorld.getBlockState(head);
@@ -206,6 +218,10 @@ public final class WaystoneRecord {
 
     public RegistryKey<World> getWorldKey() {
         return world;
+    }
+
+    public ServerWorld getWorld(MinecraftServer server) {
+        return server.getWorld(this.getWorldKey());
     }
 
     public boolean isGlobal() {

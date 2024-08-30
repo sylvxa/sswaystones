@@ -19,6 +19,7 @@ import net.minecraft.block.enums.WallShape;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -79,8 +80,10 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         if (world.isClient())
             return super.onBreak(world, pos, state, player);
 
-        assert world.getServer() != null;
-        WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
+        MinecraftServer server = world.getServer();
+        assert server != null;
+
+        WaystoneStorage storage = WaystoneStorage.getServerState(server);
         WaystoneRecord record = storage.getWaystone(HashUtil.getHash(pos, world.getRegistryKey()));
 
         if (world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystoneBlockEntity) {
@@ -88,7 +91,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         }
 
         if (record != null)
-            storage.destroyWaystone(record);
+            storage.destroyWaystone(server, record);
 
         return super.onBreak(world, pos, state, player);
     }

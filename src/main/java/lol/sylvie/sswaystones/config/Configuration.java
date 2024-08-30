@@ -58,5 +58,9 @@ public class Configuration {
         @SerializedName("paranoid_teleport")
         @Description(translation = "config.sswaystones.paranoid_teleport")
         public boolean safeTeleport = true;
+
+        @SerializedName("remove_invalid_waystones")
+        @Description(translation = "config.sswaystones.remove_invalid_waystones")
+        public boolean removeInvalidWaystones = true;
     }
 }

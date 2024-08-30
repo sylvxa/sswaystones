@@ -1,11 +1,11 @@
 {
   "itemGroup.sswaystones.item_group": "Server-Side Waystones",
-  "error.sswaystones.no_dimension": "The dimension you are trying to teleport to no longer exists!",
-  "error.sswaystones.not_enough_xp": "You must obtain %s more experience level(s) to teleport!",
-  "command.sswaystones.list_header": "§b§eList of Waystones:",
-  "message.sswaystones.discovered": "You discovered %s!",
   "block.sswaystones.waystone": "Waystone",
   "item.sswaystones.portable_waystone": "Portable Waystone",
+  "error.sswaystones.no_dimension": "The dimension you are trying to teleport to no longer exists!",
+  "error.sswaystones.not_enough_xp": "You must obtain %s more experience level(s) to teleport!",
+  "error.sswaystones.invalid_waystone": "The waystone you are trying to teleport has been removed!",
+  "message.sswaystones.discovered": "You discovered %s!",
   "gui.sswaystones.page_previous": "Previous Page",
   "gui.sswaystones.page_next": "Next Page",
   "gui.sswaystones.steal_waystone": "Take Ownership",
@@ -15,6 +15,9 @@
   "gui.sswaystones.change_name_title": "Waystone Name",
   "gui.sswaystones.change_icon_title": "Waystone Icon",
   "gui.sswaystones.change_icon_instruction": "Click on an item in your inventory to set the icon!",
+  "command.sswaystones.waystone_not_found": "That waystone does not exist!",
+  "command.sswaystones.waystone_removed_successfully": "Waystone was removed!",
+  "command.sswaystones.list_header": "§b§eList of Waystones:",
   "command.sswaystones.config_reload_success": "Reloaded configuration from disk!",
   "command.sswaystones.config_save_success": "Saved configuration to disk!",
   "command.sswaystones.config_help_header": "§b§eConfiguration Options:",
@@ -24,5 +27,6 @@
   "command.sswaystones.config_set_invalid_type": "Invalid type for config value.",
   "config.sswaystones.no_description": "No description provided",
   "config.sswaystones.xp_cost": "How many XP levels using a waystone costs. (0 to disable)",
-  "config.sswaystones.paranoid_teleport": "Enables several checks to make sure waystones aren't trapped when true."
+  "config.sswaystones.paranoid_teleport": "Enables several checks to make sure waystones aren't trapped when true.",
+  "config.sswaystones.remove_invalid_waystones": "Removes invalid waystones when they are removed in the world but not in the records."
 }
