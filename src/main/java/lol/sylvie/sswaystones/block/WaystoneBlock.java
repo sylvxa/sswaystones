@@ -75,11 +75,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         makeWaystoneHere(pos, world, placer);
     }
 
-    @Override
-    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (world.isClient())
-            return super.onBreak(world, pos, state, player);
-
+    private void onRemoved(World world, BlockPos pos) {
         MinecraftServer server = world.getServer();
         assert server != null;
 
@@ -92,8 +88,20 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
 
         if (record != null)
             storage.destroyWaystone(server, record);
+    }
 
+    @Override
+    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        if (!world.isClient())
+            onRemoved(world, pos);
         return super.onBreak(world, pos, state, player);
+    }
+
+    @Override
+    protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+        if (!newState.isOf(ModBlocks.WAYSTONE) && !world.isClient())
+            onRemoved(world, pos);
+        super.onStateReplaced(state, world, pos, newState, moved);
     }
 
     // Open GUI
