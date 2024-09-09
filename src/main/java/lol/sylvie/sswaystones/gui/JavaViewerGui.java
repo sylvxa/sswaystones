@@ -57,8 +57,10 @@ public class JavaViewerGui extends SimpleGui {
 
         for (int i = offset; i < this.discovered.size(); i++) {
             WaystoneRecord record = this.discovered.get(i);
-
-            this.setSlot(i - offset, new GuiElementBuilder(record.getIconOrHead(player.server))
+            int slot = i - offset;
+            if (slot >= 45)
+                break;
+            this.setSlot(slot, new GuiElementBuilder(record.getIconOrHead(player.server))
                     .setName(record.getWaystoneText().copy().formatted(Formatting.YELLOW))
                     .setLore(List.of(Text.of(record.getOwnerName()))).setCallback((index, type, action, gui) -> {
                         record.handleTeleport(player);
