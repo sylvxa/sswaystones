@@ -22,7 +22,7 @@
   "command.sswaystones.config_save_success": "Сохранена конфигурация на диск!",
   "command.sswaystones.config_help_header": "§b§eПараметры конфигурации:",
   "command.sswaystones.config_format": "%s §7= %s",
-  "command.sswaystones.config_set_success": "Установите %s на %s!",
+  "command.sswaystones.config_set_success": "Для %s установлено значение %s!",
   "command.sswaystones.config_not_found": "Настройка не найдена.",
   "command.sswaystones.config_set_invalid_type": "Неверный тип значения конфигурации.",
   "config.sswaystones.no_description": "Описание не предоставлено",
