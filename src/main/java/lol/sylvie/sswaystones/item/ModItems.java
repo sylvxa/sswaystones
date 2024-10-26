@@ -16,11 +16,14 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 
 public class ModItems {
-    public static final Item WAYSTONE = register(new WaystoneBlockItem(new Item.Settings().rarity(Rarity.RARE)),
-            "waystone");
+    public static final Item WAYSTONE = register(new WaystoneBlockItem(new Item.Settings()
+            .useBlockPrefixedTranslationKey().registryKey(WaystoneBlockItem.KEY).rarity(Rarity.RARE)),
+            WaystoneBlockItem.ID);
 
     public static final Item PORTABLE_WAYSTONE = register(
-            new PortableWaystoneItem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1)), "portable_waystone");
+            new PortableWaystoneItem(
+                    new Item.Settings().registryKey(PortableWaystoneItem.KEY).rarity(Rarity.EPIC).maxCount(1)),
+            PortableWaystoneItem.ID);
 
     public static final ItemGroup ITEM_GROUP = PolymerItemGroupUtils.builder()
             .displayName(Text.translatable("itemGroup.sswaystones.item_group"))
@@ -29,11 +32,8 @@ public class ModItems {
                 entries.add(PORTABLE_WAYSTONE);
             }).build();
 
-    public static Item register(Item item, String name) {
-        // Register the item
-        Identifier id = Identifier.of(Waystones.MOD_ID, name);
-
-        return Registry.register(Registries.ITEM, id, item);
+    public static Item register(Item item, Identifier identifier) {
+        return Registry.register(Registries.ITEM, identifier, item);
     }
 
     public static void initialize() {

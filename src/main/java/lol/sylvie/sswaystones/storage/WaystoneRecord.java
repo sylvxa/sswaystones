@@ -9,6 +9,7 @@ import com.mojang.authlib.minecraft.MinecraftProfileTextures;
 import com.mojang.authlib.yggdrasil.ProfileResult;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.block.ModBlocks;
@@ -190,7 +191,8 @@ public final class WaystoneRecord {
 
         // Teleport!
         Vec3d center = target.toBottomCenterPos();
-        player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), player.getYaw(), player.getPitch());
+        player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), Set.of(), player.getYaw(),
+                player.getPitch(), false);
         targetWorld.playSound(null, target, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1f);
         targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(), 16,
                 0.5d, 0.5d, 0.5d, 0.1d);

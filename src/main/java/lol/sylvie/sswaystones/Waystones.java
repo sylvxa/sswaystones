@@ -10,6 +10,7 @@ import lol.sylvie.sswaystones.config.Configuration;
 import lol.sylvie.sswaystones.item.ModItems;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,5 +32,9 @@ public class Waystones implements ModInitializer {
 
         CommandRegistrationCallback.EVENT
                 .register((dispatcher, registryAccess, environment) -> WaystonesCommand.register(dispatcher));
+    }
+
+    public static Identifier id(String name) {
+        return Identifier.of(MOD_ID, name);
     }
 }

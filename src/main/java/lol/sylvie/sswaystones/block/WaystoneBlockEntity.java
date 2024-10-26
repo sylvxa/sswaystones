@@ -8,6 +8,7 @@ import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
+import java.awt.*;
 import java.util.Random;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
@@ -51,7 +52,7 @@ public class WaystoneBlockEntity extends BlockEntity {
         // Particles
         if (RANDOM.nextInt(0, 20) == 0 && world instanceof ServerWorld serverWorld) {
             Vec3d pos = waystoneEntity.getPos().add(0, 1, 0).toCenterPos();
-            serverWorld.spawnParticles(new DustParticleEffect(new Vector3f(1f, 0f, 0f), 1f), pos.getX(), pos.getY(),
+            serverWorld.spawnParticles(new DustParticleEffect(Color.RED.getRGB(), 1f), pos.getX(), pos.getY(),
                     pos.getZ(), 8, 0.1d, 0.1d, 0.1d, 0.1d);
         }
 

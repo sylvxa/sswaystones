@@ -6,21 +6,11 @@
     "IQI"
   ],
   "key": {
-    "S": {
-      "item": "minecraft:nether_star"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "Q": {
-      "item": "minecraft:quartz"
-    },
-    "E": {
-      "item": "minecraft:ender_eye"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    }
+    "S": "minecraft:nether_star",
+    "R": "minecraft:redstone",
+    "Q": "minecraft:quartz",
+    "E": "minecraft:ender_eye",
+    "I": "minecraft:iron_ingot"
   },
   "result": {
     "id": "sswaystones:portable_waystone"

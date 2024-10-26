@@ -6,36 +6,42 @@ package lol.sylvie.sswaystones.item;
 
 import eu.pb4.polymer.core.api.item.PolymerItemUtils;
 import eu.pb4.polymer.core.api.item.SimplePolymerItem;
+import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.gui.ViewerUtil;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
+import xyz.nucleoid.packettweaker.PacketContext;
 
 public class PortableWaystoneItem extends SimplePolymerItem {
+    public static final Identifier ID = Waystones.id("portable_waystone");
+    public static final RegistryKey<Item> KEY = RegistryKey.of(Registries.ITEM.getKey(), ID);
+
     public PortableWaystoneItem(Settings settings) {
         super(settings, Items.ENDER_EYE);
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
         if (user instanceof ServerPlayerEntity player)
             ViewerUtil.openGui(player, null);
 
-        return TypedActionResult.consume(user.getStackInHand(hand));
+        return ActionResult.SUCCESS;
     }
 
     @Override
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType tooltipType,
-            RegistryWrapper.WrapperLookup lookup, @Nullable ServerPlayerEntity player) {
-        ItemStack out = PolymerItemUtils.createItemStack(itemStack, lookup, player);
+    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType tooltipType, PacketContext context) {
+        ItemStack out = PolymerItemUtils.createItemStack(itemStack, tooltipType, context);
         out.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
         return out;
     }

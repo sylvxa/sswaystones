@@ -36,17 +36,16 @@ public class JavaViewerGui extends SimpleGui {
         WaystoneStorage storage = WaystoneStorage.getServerState(player.getServer());
         this.discovered = storage.getDiscoveredWaystones(player).stream().filter(r -> !r.equals(waystone))
                 .sorted(Comparator.comparing(WaystoneRecord::getWaystoneName)).toList();
-        this.maxPages = Math.ceilDiv(this.discovered.size(), ITEMS_PER_PAGE);
+        this.maxPages = Math.max(Math.ceilDiv(this.discovered.size(), ITEMS_PER_PAGE), 1);
     }
 
     public void updateMenu() {
         // If there are no other waystones this will display as 0
-        int displayMaxPages = Math.max(maxPages, 1);
         if (waystone != null) {
             this.setTitle(Text.literal(String.format("%s [%s] (%s/%s)", waystone.getWaystoneName(),
-                    waystone.getOwnerName(), pageIndex + 1, displayMaxPages)));
+                    waystone.getOwnerName(), pageIndex + 1, maxPages)));
         } else {
-            this.setTitle(Text.literal(String.format("Waystones (%s/%s)", pageIndex + 1, displayMaxPages)));
+            this.setTitle(Text.literal(String.format("Waystones (%s/%s)", pageIndex + 1, maxPages)));
         }
 
         int offset = ITEMS_PER_PAGE * pageIndex;

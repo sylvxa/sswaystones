@@ -11,8 +11,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class ViewerUtil {
     public static void openGui(ServerPlayerEntity player, @Nullable WaystoneRecord record) {
-
-        if (FabricLoader.getInstance().isModLoaded("geyser-fabric")) {
+        // TODO: Floodgate hasn't been released for 1.21.3, so I'm not quite sure if this works.
+        if (FabricLoader.getInstance().isModLoaded("geyser-fabric")
+                || FabricLoader.getInstance().isModLoaded("floodgate")) {
             if (GeyserViewerGui.openGuiIfBedrock(player, record)) {
                 return;
             }

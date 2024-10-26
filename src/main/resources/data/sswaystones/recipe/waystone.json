@@ -6,18 +6,10 @@
     "BBB"
   ],
   "key": {
-    "B": {
-      "item": "minecraft:stone_bricks"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "E": {
-      "item": "minecraft:ender_eye"
-    },
-    "W": {
-      "item": "minecraft:stone_brick_wall"
-    }
+    "B": "minecraft:stone_bricks",
+    "R": "minecraft:redstone",
+    "E": "minecraft:ender_eye",
+    "W": "minecraft:stone_brick_wall"
   },
   "result": {
     "id": "sswaystones:waystone"
