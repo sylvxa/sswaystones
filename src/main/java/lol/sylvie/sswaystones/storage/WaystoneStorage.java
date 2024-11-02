@@ -6,14 +6,11 @@ package lol.sylvie.sswaystones.storage;
 
 import java.util.*;
 import lol.sylvie.sswaystones.Waystones;
-import lol.sylvie.sswaystones.block.ModBlocks;
 import lol.sylvie.sswaystones.util.NameGenerator;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
@@ -120,11 +117,5 @@ public class WaystoneStorage extends PersistentState {
         amnesiaWaystone(record);
 
         this.waystones.remove(record.getHash());
-
-        // Remove it in the world
-        ServerWorld world = record.getWorld(server);
-        if (world.getBlockState(record.getPos()).isOf(ModBlocks.WAYSTONE)) {
-            world.setBlockState(record.getPos(), Blocks.AIR.getDefaultState());
-        }
     }
 }

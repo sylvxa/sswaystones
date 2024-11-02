@@ -17,11 +17,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import lol.sylvie.sswaystones.Waystones;
+import lol.sylvie.sswaystones.block.ModBlocks;
 import lol.sylvie.sswaystones.config.Configuration;
 import lol.sylvie.sswaystones.config.Description;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -60,7 +63,15 @@ public class WaystonesCommand {
                                 Text.translatable("command.sswaystones.waystone_not_found"));
                     }
 
-                    storage.destroyWaystone(context.getSource().getServer(), entry.get().getValue());
+                    MinecraftServer server = context.getSource().getServer();
+                    WaystoneRecord record = entry.get().getValue();
+                    storage.destroyWaystone(server, record);
+
+                    // Remove it in the world
+                    ServerWorld world = record.getWorld(server);
+                    if (world.getBlockState(record.getPos()).isOf(ModBlocks.WAYSTONE)) {
+                        world.breakBlock(record.getPos(), true);
+                    }
 
                     context.getSource().sendFeedback(
                             () -> Text.translatable("command.sswaystones.waystone_removed_successfully"), true);

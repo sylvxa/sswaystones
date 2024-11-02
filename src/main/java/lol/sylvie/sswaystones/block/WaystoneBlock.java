@@ -61,11 +61,6 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         return 1200;
     }
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
-
     private WaystoneRecord makeWaystoneHere(BlockPos pos, World world, LivingEntity owner) {
         assert world.getServer() != null;
         WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
