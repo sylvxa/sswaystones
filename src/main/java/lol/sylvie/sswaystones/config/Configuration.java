@@ -55,6 +55,10 @@ public class Configuration {
         @Description(translation = "config.sswaystones.xp_cost")
         public int xpCost = 0;
 
+        @SerializedName("combat_cooldown")
+        @Description(translation = "config.sswaystones.combat_cooldown")
+        public int combatCooldown = 0;
+
         @SerializedName("paranoid_teleport")
         @Description(translation = "config.sswaystones.paranoid_teleport")
         public boolean safeTeleport = true;

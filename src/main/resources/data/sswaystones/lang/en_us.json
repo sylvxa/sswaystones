@@ -5,6 +5,7 @@
   "error.sswaystones.no_dimension": "The dimension you are trying to teleport to no longer exists!",
   "error.sswaystones.not_enough_xp": "You must obtain %s more experience level(s) to teleport!",
   "error.sswaystones.invalid_waystone": "The waystone you are trying to teleport has been removed!",
+  "error.sswaystones.combat_cooldown": "You may not use waystones while in combat!",
   "message.sswaystones.discovered": "You discovered %s!",
   "gui.sswaystones.page_previous": "Previous Page",
   "gui.sswaystones.page_next": "Next Page",
@@ -28,5 +29,6 @@
   "config.sswaystones.no_description": "No description provided",
   "config.sswaystones.xp_cost": "How many XP levels using a waystone costs. (0 to disable)",
   "config.sswaystones.paranoid_teleport": "Enables several checks to make sure waystones aren't trapped when true.",
-  "config.sswaystones.remove_invalid_waystones": "Removes invalid waystones when they are removed in the world but not in the records."
+  "config.sswaystones.remove_invalid_waystones": "Removes invalid waystones when they are removed in the world but not in the records.",
+  "config.sswaystones.combat_cooldown": "Disallows using waystones for a configurable amount of time after being hit by a player."
 }

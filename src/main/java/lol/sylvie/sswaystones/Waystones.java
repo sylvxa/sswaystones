@@ -10,14 +10,28 @@ import lol.sylvie.sswaystones.config.Configuration;
 import lol.sylvie.sswaystones.item.ModItems;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.UUID;
 
 public class Waystones implements ModInitializer {
     public static String MOD_ID = "sswaystones";
     public static Logger LOGGER = LoggerFactory.getLogger("Server-Side Waystones");
     public static Configuration configuration;
+
+    protected static HashMap<UUID, Long> combatTimestamps = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -32,9 +46,21 @@ public class Waystones implements ModInitializer {
 
         CommandRegistrationCallback.EVENT
                 .register((dispatcher, registryAccess, environment) -> WaystonesCommand.register(dispatcher));
+
+        AttackEntityCallback.EVENT.register((playerEntity, world, hand, entity, entityHitResult) -> {
+            if (entity instanceof ServerPlayerEntity otherPlayer)
+                combatTimestamps.put(otherPlayer.getUuid(), System.currentTimeMillis());
+            return ActionResult.PASS;
+        });
     }
 
     public static Identifier id(String name) {
         return Identifier.of(MOD_ID, name);
+    }
+
+    public static boolean isInCombat(ServerPlayerEntity player) {
+        UUID uuid = player.getUuid();
+        if (!combatTimestamps.containsKey(uuid)) return false;
+        return combatTimestamps.get(uuid) + (configuration.getInstance().combatCooldown * 1000L) > System.currentTimeMillis();
     }
 }
