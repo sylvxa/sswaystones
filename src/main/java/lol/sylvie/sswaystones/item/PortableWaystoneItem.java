@@ -23,8 +23,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-import java.util.UUID;
-
 public class PortableWaystoneItem extends SimplePolymerItem {
     public static final Identifier ID = Waystones.id("portable_waystone");
     public static final RegistryKey<Item> KEY = RegistryKey.of(Registries.ITEM.getKey(), ID);

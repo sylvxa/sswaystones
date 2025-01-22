@@ -26,6 +26,6 @@
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
-    "minecraft": ["1.21.2", "1.21.3"]
+    "minecraft": ["1.21.4"]
   }
 }

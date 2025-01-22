@@ -116,11 +116,20 @@ public final class WaystoneRecord {
                 icon);
     }
 
+    public int getXpCost(ServerPlayerEntity player) {
+        Configuration.Instance config = Waystones.configuration.getInstance();
+        if (player.isCreative())
+            return 0;
+        return player.getWorld().getRegistryKey().equals(this.getWorldKey())
+                ? config.xpCost
+                : config.crossDimensionXpCost;
+    }
+
     public void handleTeleport(ServerPlayerEntity player) {
         Configuration.Instance config = Waystones.configuration.getInstance();
         // Experience cost
-        int requiredXp = config.xpCost;
-        if (requiredXp > 0 && !player.isCreative()) {
+        int requiredXp = getXpCost(player);
+        if (requiredXp > 0) {
             if (player.experienceLevel < requiredXp) {
                 player.sendMessage(
                         Text.translatable("error.sswaystones.not_enough_xp", requiredXp - player.experienceLevel)

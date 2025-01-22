@@ -55,6 +55,10 @@ public class Configuration {
         @Description(translation = "config.sswaystones.xp_cost")
         public int xpCost = 0;
 
+        @SerializedName("cross_dimension_xp_cost")
+        @Description(translation = "config.sswaystones.cross_dimension_xp_cost")
+        public int crossDimensionXpCost = 1;
+
         @SerializedName("combat_cooldown")
         @Description(translation = "config.sswaystones.combat_cooldown")
         public int combatCooldown = 0;

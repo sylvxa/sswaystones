@@ -4,6 +4,8 @@
 */
 package lol.sylvie.sswaystones;
 
+import java.util.HashMap;
+import java.util.UUID;
 import lol.sylvie.sswaystones.block.ModBlocks;
 import lol.sylvie.sswaystones.command.WaystonesCommand;
 import lol.sylvie.sswaystones.config.Configuration;
@@ -11,20 +13,11 @@ import lol.sylvie.sswaystones.item.ModItems;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.UUID;
 
 public class Waystones implements ModInitializer {
     public static String MOD_ID = "sswaystones";
@@ -60,7 +53,9 @@ public class Waystones implements ModInitializer {
 
     public static boolean isInCombat(ServerPlayerEntity player) {
         UUID uuid = player.getUuid();
-        if (!combatTimestamps.containsKey(uuid)) return false;
-        return combatTimestamps.get(uuid) + (configuration.getInstance().combatCooldown * 1000L) > System.currentTimeMillis();
+        if (!combatTimestamps.containsKey(uuid))
+            return false;
+        return combatTimestamps.get(uuid) + (configuration.getInstance().combatCooldown * 1000L) > System
+                .currentTimeMillis();
     }
 }
