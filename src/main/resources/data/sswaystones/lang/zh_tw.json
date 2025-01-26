@@ -31,5 +31,5 @@
   "config.sswaystones.cross_dimension_xp_cost": "跨維度使用傳送石碑消耗的經驗等級。(0 為停用)",
   "config.sswaystones.paranoid_teleport": "啟用數個檢查，以確保傳送石碑在啟用時沒有被陷阱困住。",
   "config.sswaystones.remove_invalid_waystones": "當傳送石碑在世界中被移除但紀錄中沒有移除時，移除無效的傳送石碑。",
-  "config.sswaystones.combat_cooldown": "在被玩家攻擊後，在設定時間內禁止使用傳送石碑。"
+  "config.sswaystones.combat_cooldown": "在被玩家攻擊後，在指定時間內禁止使用傳送石碑。"
 }
