@@ -129,6 +129,7 @@ public final class WaystoneRecord {
         MinecraftServer server = player.getServer();
         assert server != null;
 
+        // Run on main thread
         server.execute(() -> {
             Configuration.Instance config = Waystones.configuration.getInstance();
 
@@ -205,8 +206,8 @@ public final class WaystoneRecord {
             player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), Set.of(), player.getYaw(),
                     player.getPitch(), false);
             targetWorld.playSound(null, target, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1f);
-            targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(), 16,
-                    0.5d, 0.5d, 0.5d, 0.1d);
+            targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(),
+                    16, 0.5d, 0.5d, 0.5d, 0.1d);
         });
     }
 
