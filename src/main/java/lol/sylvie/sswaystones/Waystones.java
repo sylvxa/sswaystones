@@ -40,9 +40,14 @@ public class Waystones implements ModInitializer {
         CommandRegistrationCallback.EVENT
                 .register((dispatcher, registryAccess, environment) -> WaystonesCommand.register(dispatcher));
 
+        // Combat cooldown
         AttackEntityCallback.EVENT.register((playerEntity, world, hand, entity, entityHitResult) -> {
-            if (entity instanceof ServerPlayerEntity otherPlayer)
-                combatTimestamps.put(otherPlayer.getUuid(), System.currentTimeMillis());
+            if (entity instanceof ServerPlayerEntity otherPlayer) {
+                long timestamp = System.currentTimeMillis();
+                combatTimestamps.put(playerEntity.getUuid(), timestamp);
+                combatTimestamps.put(otherPlayer.getUuid(), timestamp);
+            }
+
             return ActionResult.PASS;
         });
     }

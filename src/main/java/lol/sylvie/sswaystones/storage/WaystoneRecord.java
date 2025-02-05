@@ -126,85 +126,88 @@ public final class WaystoneRecord {
     }
 
     public void handleTeleport(ServerPlayerEntity player) {
-        Configuration.Instance config = Waystones.configuration.getInstance();
-        // Experience cost
-        int requiredXp = getXpCost(player);
-        if (requiredXp > 0) {
-            if (player.experienceLevel < requiredXp) {
-                player.sendMessage(
-                        Text.translatable("error.sswaystones.not_enough_xp", requiredXp - player.experienceLevel)
-                                .formatted(Formatting.RED),
-                        true);
-                return;
-            } else {
-                player.addExperienceLevels(Math.min(-requiredXp, 0)); // Stop negative values from adding xp
-            }
-        }
-
         MinecraftServer server = player.getServer();
         assert server != null;
 
-        BlockPos target = this.getPos();
-        ServerWorld targetWorld = this.getWorld(server);
+        server.execute(() -> {
+            Configuration.Instance config = Waystones.configuration.getInstance();
 
-        if (targetWorld == null) {
-            player.sendMessage(Text.translatable("error.sswaystones.no_dimension").formatted(Formatting.RED));
-            return;
-        }
-
-        // Remove invalid waystones
-        if (!targetWorld.getBlockState(target).isOf(ModBlocks.WAYSTONE) && config.removeInvalidWaystones) {
-            WaystoneStorage.getServerState(server).destroyWaystone(server, this);
-            player.sendMessage(Text.translatable("error.sswaystones.invalid_waystone").formatted(Formatting.RED));
-            return;
-        }
-
-        if (config.safeTeleport) {
-            // Remove any blocks trying to suffocate the player
-            BlockPos head = target.add(0, 1, 0);
-            BlockState headState = targetWorld.getBlockState(head);
-            if (!headState.getCollisionShape(targetWorld, head).isEmpty()) {
-                if (headState.getHardness(targetWorld, head) != -1) {
-                    player.getServer().executeSync(() -> targetWorld.breakBlock(head, true));
+            // Experience cost
+            int requiredXp = getXpCost(player);
+            if (requiredXp > 0) {
+                if (player.experienceLevel < requiredXp) {
+                    player.sendMessage(
+                            Text.translatable("error.sswaystones.not_enough_xp", requiredXp - player.experienceLevel)
+                                    .formatted(Formatting.RED),
+                            true);
+                    return;
+                } else {
+                    player.addExperienceLevels(Math.min(-requiredXp, 0)); // Stop negative values from adding xp
                 }
             }
 
-            // Make sure there is a platform beneath the waystone
-            for (int x = -1; x <= 1; x++) {
-                for (int z = -1; z <= 1; z++) {
-                    BlockPos ground = this.pos.add(x, -1, z);
-                    if (targetWorld.getBlockState(ground).isAir()) {
-                        targetWorld.setBlockState(ground, Blocks.COBBLESTONE.getDefaultState());
+            BlockPos target = this.getPos();
+            ServerWorld targetWorld = this.getWorld(server);
+
+            if (targetWorld == null) {
+                player.sendMessage(Text.translatable("error.sswaystones.no_dimension").formatted(Formatting.RED));
+                return;
+            }
+
+            // Remove invalid waystones
+            if (!targetWorld.getBlockState(target).isOf(ModBlocks.WAYSTONE) && config.removeInvalidWaystones) {
+                WaystoneStorage.getServerState(server).destroyWaystone(server, this);
+                player.sendMessage(Text.translatable("error.sswaystones.invalid_waystone").formatted(Formatting.RED));
+                return;
+            }
+
+            if (config.safeTeleport) {
+                // Remove any blocks trying to suffocate the player
+                BlockPos head = target.add(0, 1, 0);
+                BlockState headState = targetWorld.getBlockState(head);
+                if (!headState.getCollisionShape(targetWorld, head).isEmpty()) {
+                    if (headState.getHardness(targetWorld, head) != -1) {
+                        player.getServer().executeSync(() -> targetWorld.breakBlock(head, true));
+                    }
+                }
+
+                // Make sure there is a platform beneath the waystone
+                for (int x = -1; x <= 1; x++) {
+                    for (int z = -1; z <= 1; z++) {
+                        BlockPos ground = this.pos.add(x, -1, z);
+                        if (targetWorld.getBlockState(ground).isAir()) {
+                            targetWorld.setBlockState(ground, Blocks.COBBLESTONE.getDefaultState());
+                        }
                     }
                 }
             }
-        }
 
-        // Search for a suitable teleport location
-        List<Vec3i> positionChecks = List.of(new Vec3i(-1, -1, 0), new Vec3i(1, -1, 0), new Vec3i(0, -1, -1),
-                new Vec3i(0, -1, 1), new Vec3i(-1, -1, -1), new Vec3i(1, -1, 1), new Vec3i(1, -1, -1),
-                new Vec3i(-1, -1, 1));
+            // Search for a suitable teleport location
+            List<Vec3i> positionChecks = List.of(new Vec3i(-1, -1, 0), new Vec3i(1, -1, 0), new Vec3i(0, -1, -1),
+                    new Vec3i(0, -1, 1), new Vec3i(-1, -1, -1), new Vec3i(1, -1, 1), new Vec3i(1, -1, -1),
+                    new Vec3i(-1, -1, 1));
 
-        for (Vec3i checkPos : positionChecks) {
-            BlockPos ground = target.add(checkPos);
-            BlockPos feet = ground.add(0, 1, 0);
-            BlockPos head = feet.add(0, 1, 0);
+            for (Vec3i checkPos : positionChecks) {
+                BlockPos ground = target.add(checkPos);
+                BlockPos feet = ground.add(0, 1, 0);
+                BlockPos head = feet.add(0, 1, 0);
 
-            if (!targetWorld.getBlockState(ground).getCollisionShape(targetWorld, ground).isEmpty()
-                    && targetWorld.getBlockState(feet).getCollisionShape(targetWorld, feet).isEmpty()
-                    && targetWorld.getBlockState(head).getCollisionShape(targetWorld, head).isEmpty()) {
-                target = feet;
-                break;
+                if (!targetWorld.getBlockState(ground).getCollisionShape(targetWorld, ground).isEmpty()
+                        && targetWorld.getBlockState(feet).getCollisionShape(targetWorld, feet).isEmpty()
+                        && targetWorld.getBlockState(head).getCollisionShape(targetWorld, head).isEmpty()) {
+                    target = feet;
+                    break;
+                }
             }
-        }
 
-        // Teleport!
-        Vec3d center = target.toBottomCenterPos();
-        player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), Set.of(), player.getYaw(),
-                player.getPitch(), false);
-        targetWorld.playSound(null, target, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1f);
-        targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(), 16,
-                0.5d, 0.5d, 0.5d, 0.1d);
+            // Teleport!
+            Vec3d center = target.toBottomCenterPos();
+            player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), Set.of(), player.getYaw(),
+                    player.getPitch(), false);
+            targetWorld.playSound(null, target, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1f);
+            targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(), 16,
+                    0.5d, 0.5d, 0.5d, 0.1d);
+        });
     }
 
     public UUID getOwnerUUID() {
