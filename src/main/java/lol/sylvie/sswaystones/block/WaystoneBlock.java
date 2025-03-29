@@ -24,6 +24,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
@@ -51,8 +52,8 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext packetContext) {
         return Blocks.STONE_BRICK_WALL.getDefaultState().with(WallBlock.UP, true)
-                .with(WallBlock.EAST_SHAPE, WallShape.LOW).with(WallBlock.WEST_SHAPE, WallShape.LOW)
-                .with(WallBlock.NORTH_SHAPE, WallShape.LOW).with(WallBlock.SOUTH_SHAPE, WallShape.LOW);
+                .with(WallBlock.EAST_WALL_SHAPE, WallShape.LOW).with(WallBlock.WEST_WALL_SHAPE, WallShape.LOW)
+                .with(WallBlock.NORTH_WALL_SHAPE, WallShape.LOW).with(WallBlock.SOUTH_WALL_SHAPE, WallShape.LOW);
     }
 
     // Should be indestructible by TNT, also lets me ignore some edge cases.
@@ -90,7 +91,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         }
 
         if (record != null)
-            storage.destroyWaystone(server, record);
+            storage.destroyWaystone(record);
     }
 
     @Override
@@ -101,10 +102,10 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
     }
 
     @Override
-    protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!newState.isOf(ModBlocks.WAYSTONE) && !world.isClient())
+    protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
+        if (!state.isOf(ModBlocks.WAYSTONE) && !world.isClient())
             onRemoved(world, pos);
-        super.onStateReplaced(state, world, pos, newState, moved);
+        super.onStateReplaced(state, world, pos, moved);
     }
 
     // Open GUI

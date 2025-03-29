@@ -7,7 +7,8 @@ package lol.sylvie.sswaystones.storage;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTextures;
 import com.mojang.authlib.yggdrasil.ProfileResult;
-import java.util.Arrays;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -23,11 +24,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -35,7 +34,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
@@ -51,15 +50,25 @@ public final class WaystoneRecord {
     private boolean global;
     private Item icon;
 
+    public static final Codec<WaystoneRecord> CODEC = RecordCodecBuilder.create(instance -> instance
+            .group(Uuids.CODEC.fieldOf("waystone_owner").forGetter(WaystoneRecord::getOwnerUUID),
+                    Codec.STRING.fieldOf("waystone_owner_name").forGetter(WaystoneRecord::getOwnerName),
+                    Codec.STRING.fieldOf("waystone_name").forGetter(WaystoneRecord::getWaystoneName),
+                    BlockPos.CODEC.fieldOf("position").forGetter(WaystoneRecord::getPos),
+                    World.CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
+                    Codec.BOOL.fieldOf("global").forGetter(WaystoneRecord::isGlobal), Registries.ITEM.getCodec()
+                            .optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
+            .apply(instance, WaystoneRecord::new));
+
     public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world,
-            boolean global, @Nullable Item icon) {
+            boolean global, Item icon) {
         this.owner = owner;
         this.ownerName = ownerName;
         this.setWaystoneName(waystoneName); // Limits waystone name
         this.pos = pos;
         this.world = world;
         this.global = global;
-        this.icon = icon;
+        this.icon = icon == null ? Items.PLAYER_HEAD : icon;
     }
 
     public String asString() {
@@ -68,52 +77,6 @@ public final class WaystoneRecord {
 
     public String getHash() {
         return HashUtil.getHash(this);
-    }
-
-    public NbtCompound toNbt() {
-        NbtCompound waystoneTag = new NbtCompound();
-
-        waystoneTag.putUuid("waystone_owner", owner);
-        waystoneTag.putString("waystone_owner_name", ownerName);
-
-        waystoneTag.putString("waystone_name", waystoneName);
-
-        waystoneTag.putIntArray("position", Arrays.asList(pos.getX(), pos.getY(), pos.getZ()));
-        waystoneTag.putString("world", world.getValue().toString());
-
-        waystoneTag.putBoolean("global", global);
-
-        if (icon != null)
-            waystoneTag.putString("icon", icon.toString());
-
-        return waystoneTag;
-    }
-
-    public static WaystoneRecord fromNbt(NbtCompound nbt) {
-        UUID waystoneOwner = nbt.getUuid("waystone_owner");
-        String waystoneOwnerName = nbt.getString("waystone_owner_name");
-
-        String waystoneName = nbt.getString("waystone_name");
-
-        int[] posAsInt = nbt.getIntArray("position");
-        BlockPos position = new BlockPos(posAsInt[0], posAsInt[1], posAsInt[2]);
-
-        Identifier worldIdentifier = Identifier.of(nbt.getString("world"));
-        RegistryKey<World> worldRegistryKey = RegistryKey.of(RegistryKeys.WORLD, worldIdentifier);
-
-        boolean global = nbt.getBoolean("global");
-
-        Item icon = null;
-        if (nbt.contains("icon")) {
-            String iconStringId = nbt.getString("icon");
-            Identifier iconId = Identifier.tryParse(iconStringId);
-            if (iconId != null) {
-                icon = Registries.ITEM.get(iconId);
-            }
-        }
-
-        return new WaystoneRecord(waystoneOwner, waystoneOwnerName, waystoneName, position, worldRegistryKey, global,
-                icon);
     }
 
     public int getXpCost(ServerPlayerEntity player) {
@@ -157,7 +120,7 @@ public final class WaystoneRecord {
 
             // Remove invalid waystones
             if (!targetWorld.getBlockState(target).isOf(ModBlocks.WAYSTONE) && config.removeInvalidWaystones) {
-                WaystoneStorage.getServerState(server).destroyWaystone(server, this);
+                WaystoneStorage.getServerState(server).destroyWaystone(this);
                 player.sendMessage(Text.translatable("error.sswaystones.invalid_waystone").formatted(Formatting.RED));
                 return;
             }
@@ -248,7 +211,9 @@ public final class WaystoneRecord {
     }
 
     public ItemStack getIconOrHead(@Nullable MinecraftServer server) {
-        // Turns out, the server needs to fetch this! Oops!
+        if (icon != null && icon != Items.PLAYER_HEAD)
+            return icon.getDefaultStack();
+
         GameProfile profile = new GameProfile(this.getOwnerUUID(), this.getOwnerName());
         if (server != null && server.getSessionService().getTextures(profile) == MinecraftProfileTextures.EMPTY) {
             ProfileResult fetched = server.getSessionService().fetchProfile(profile.getId(), false);
@@ -256,12 +221,9 @@ public final class WaystoneRecord {
                 profile = fetched.profile();
         }
 
-        if (icon == null) {
-            ItemStack head = Items.PLAYER_HEAD.getDefaultStack();
-            head.set(DataComponentTypes.PROFILE, new ProfileComponent(profile));
-            return head;
-        }
-        return icon.getDefaultStack();
+        ItemStack head = Items.PLAYER_HEAD.getDefaultStack();
+        head.set(DataComponentTypes.PROFILE, new ProfileComponent(profile));
+        return head;
     }
 
     public void setOwner(PlayerEntity player) {

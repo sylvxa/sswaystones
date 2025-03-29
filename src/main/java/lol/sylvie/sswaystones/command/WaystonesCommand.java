@@ -65,7 +65,7 @@ public class WaystonesCommand {
 
                     MinecraftServer server = context.getSource().getServer();
                     WaystoneRecord record = entry.get().getValue();
-                    storage.destroyWaystone(server, record);
+                    storage.destroyWaystone(record);
 
                     // Remove it in the world
                     ServerWorld world = record.getWorld(server);
