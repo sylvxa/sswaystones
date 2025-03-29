@@ -24,7 +24,6 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
@@ -79,7 +78,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         makeWaystoneHere(pos, world, placer);
     }
 
-    private void onRemoved(World world, BlockPos pos) {
+    public static void onRemoved(World world, BlockPos pos) {
         MinecraftServer server = world.getServer();
         assert server != null;
 
@@ -99,13 +98,6 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         if (!world.isClient())
             onRemoved(world, pos);
         return super.onBreak(world, pos, state, player);
-    }
-
-    @Override
-    protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
-        if (!state.isOf(ModBlocks.WAYSTONE) && !world.isClient())
-            onRemoved(world, pos);
-        super.onStateReplaced(state, world, pos, moved);
     }
 
     // Open GUI

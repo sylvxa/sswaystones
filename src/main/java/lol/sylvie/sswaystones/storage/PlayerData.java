@@ -10,14 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerData {
-    public List<String> discoveredWaystones;
+    public ArrayList<String> discoveredWaystones;
 
     public PlayerData() {
         this(new ArrayList<>());
     }
 
     public PlayerData(List<String> discoveredWaystones) {
-        this.discoveredWaystones = discoveredWaystones;
+        this.discoveredWaystones = new ArrayList<>(discoveredWaystones);
     }
 
     public List<String> getDiscoveredWaystones() {
