@@ -5,6 +5,7 @@
 package lol.sylvie.sswaystones.gui;
 
 import lol.sylvie.sswaystones.Waystones;
+import lol.sylvie.sswaystones.gui.compat.FloodgateCompat;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -19,14 +20,8 @@ public class ViewerUtil {
             return;
         }
 
-        // TODO: Floodgate hasn't been released for 1.21.3, so I'm not quite sure if
-        // this works.
-        if (FabricLoader.getInstance().isModLoaded("geyser-fabric")
-                || FabricLoader.getInstance().isModLoaded("floodgate")) {
-            if (GeyserViewerGui.openGuiIfBedrock(player, record)) {
-                return;
-            }
-
+        if (FabricLoader.getInstance().isModLoaded(FloodgateCompat.MOD_ID) && FloodgateCompat.openGuiOrFalse(player, record)) {
+            return;
         }
 
         JavaViewerGui gui = new JavaViewerGui(player, record);
