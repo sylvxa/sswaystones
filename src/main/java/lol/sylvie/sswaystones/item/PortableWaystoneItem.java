@@ -9,6 +9,7 @@ import eu.pb4.polymer.core.api.item.SimplePolymerItem;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.gui.ViewerUtil;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -22,6 +23,8 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import xyz.nucleoid.packettweaker.PacketContext;
+
+import java.util.List;
 
 public class PortableWaystoneItem extends SimplePolymerItem {
     public static final Identifier ID = Waystones.id("portable_waystone");
@@ -43,6 +46,7 @@ public class PortableWaystoneItem extends SimplePolymerItem {
     public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType tooltipType, PacketContext context) {
         ItemStack out = PolymerItemUtils.createItemStack(itemStack, tooltipType, context);
         out.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+        out.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(), List.of(), List.of(ID.toString()), List.of()));
         return out;
     }
 }
