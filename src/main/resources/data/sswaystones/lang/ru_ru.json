@@ -5,6 +5,7 @@
   "error.sswaystones.no_dimension": "Измерение, в которое вы пытаетесь телепортироваться, больше не существует!",
   "error.sswaystones.not_enough_xp": "Вам нужно получить еще %s уровень(ей) XP, чтобы телепортироваться!",
   "error.sswaystones.invalid_waystone": "Путеводный камень, к которому вы пытаетесь телепортироваться, был удален!",
+  "error.sswaystones.combat_cooldown": "Вы не можете использовать путеводные камни во время боя!",
   "message.sswaystones.discovered": "Вы обнаружили %s!",
   "gui.sswaystones.page_previous": "Предыдущая страница",
   "gui.sswaystones.page_next": "Следующая страница",
@@ -26,7 +27,9 @@
   "command.sswaystones.config_not_found": "Настройка не найдена.",
   "command.sswaystones.config_set_invalid_type": "Неверный тип значения конфигурации.",
   "config.sswaystones.no_description": "Описание не предоставлено",
-  "config.sswaystones.xp_cost": "Сколько уровней XP стоит использование путевого камня. (0 - отключить)",
+  "config.sswaystones.xp_cost": "Сколько уровней XP стоит использование путеводного камня. (0 - отключить)",
+  "config.sswaystones.cross_dimension_xp_cost": "Сколько уровней XP стоит использование путеводного камня для перехода между измерениями. (0 - отключить)",
   "config.sswaystones.paranoid_teleport": "Включает несколько проверок, чтобы убедиться, что путеводные камни не заблокированы, когда это true.",
-  "config.sswaystones.remove_invalid_waystones": "Удаляет недействительные путеводные камни, когда они удалены в мире, но не в записях."
+  "config.sswaystones.remove_invalid_waystones": "Удаляет недействительные путеводные камни, когда они удалены в мире, но не в записях.",
+  "config.sswaystones.combat_cooldown": "Запрещает использование путеводных камней в течение настраиваемого времени после удара игроком."
 }

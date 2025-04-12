@@ -19,6 +19,14 @@ Polymer-based server sided Waystone mod, with Geyser and vanilla client support.
 
 ![Recipe for the Portable Waystone](assets/portable_waystone_recipe.png)
 
+# Configuration
+The file is saved in `config/sswaystones.json`, and can be edited either manually or by commands.
+- `/sswaystones config set [key] [value]` (sets a configuration option)
+- `/sswaystones config get [key]` (gets the value of a configuration option)
+- `/sswaystones config help` (lists all configuration options)
+- `/sswaystones config reload` (loads configuration from disk)
+- `/sswaystones config save` (saves configuration to disk)
+
 ## Roadmap
 - [x] Add optional XP price for teleporting.
 - [x] More configuration
