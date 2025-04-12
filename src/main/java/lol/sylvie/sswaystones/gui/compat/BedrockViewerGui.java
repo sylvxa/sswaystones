@@ -7,7 +7,6 @@ package lol.sylvie.sswaystones.gui.compat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
-
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.NameGenerator;
@@ -27,8 +26,8 @@ public class BedrockViewerGui {
         sendForm.accept(form);
     }
 
-    public static SimpleForm getViewerForm(ServerPlayerEntity player,
-            @Nullable WaystoneRecord waystone, Consumer<Form> sendForm) {
+    public static SimpleForm getViewerForm(ServerPlayerEntity player, @Nullable WaystoneRecord waystone,
+            Consumer<Form> sendForm) {
         String title = "Waystones";
         if (waystone != null) {
             title = String.format("%s [%s]", waystone.getWaystoneName(), waystone.getOwnerName());

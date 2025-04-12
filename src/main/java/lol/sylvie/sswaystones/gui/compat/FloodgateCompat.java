@@ -1,11 +1,14 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.gui.compat;
 
+import java.util.UUID;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.geysermc.floodgate.api.FloodgateApi;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 public class FloodgateCompat {
     public static final String MOD_ID = "floodgate";

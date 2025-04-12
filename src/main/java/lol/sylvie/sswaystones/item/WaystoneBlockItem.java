@@ -6,6 +6,7 @@ package lol.sylvie.sswaystones.item;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import eu.pb4.polymer.core.api.item.PolymerItemUtils;
+import java.util.List;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.block.ModBlocks;
 import net.minecraft.component.DataComponentTypes;
@@ -19,8 +20,6 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import xyz.nucleoid.packettweaker.PacketContext;
-
-import java.util.List;
 
 public class WaystoneBlockItem extends BlockItem implements PolymerItem {
     public static final Identifier ID = Waystones.id("waystone");
@@ -39,7 +38,8 @@ public class WaystoneBlockItem extends BlockItem implements PolymerItem {
     public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType tooltipType, PacketContext context) {
         ItemStack out = PolymerItemUtils.createItemStack(itemStack, tooltipType, context);
         out.set(DataComponentTypes.ITEM_MODEL, Identifier.ofVanilla("stone_brick_wall"));
-        out.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(), List.of(), List.of(ID.toString()), List.of()));
+        out.set(DataComponentTypes.CUSTOM_MODEL_DATA,
+                new CustomModelDataComponent(List.of(), List.of(), List.of(ID.toString()), List.of()));
         return out;
     }
 }

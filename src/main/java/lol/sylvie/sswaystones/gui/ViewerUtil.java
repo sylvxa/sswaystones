@@ -20,7 +20,8 @@ public class ViewerUtil {
             return;
         }
 
-        if (FabricLoader.getInstance().isModLoaded(FloodgateCompat.MOD_ID) && FloodgateCompat.openGuiOrFalse(player, record)) {
+        if (FabricLoader.getInstance().isModLoaded(FloodgateCompat.MOD_ID)
+                && FloodgateCompat.openGuiOrFalse(player, record)) {
             return;
         }
 
