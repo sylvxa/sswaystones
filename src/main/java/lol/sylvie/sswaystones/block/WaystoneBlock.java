@@ -51,8 +51,8 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext packetContext) {
         return Blocks.STONE_BRICK_WALL.getDefaultState().with(WallBlock.UP, true)
-                .with(WallBlock.EAST_SHAPE, WallShape.LOW).with(WallBlock.WEST_SHAPE, WallShape.LOW)
-                .with(WallBlock.NORTH_SHAPE, WallShape.LOW).with(WallBlock.SOUTH_SHAPE, WallShape.LOW);
+                .with(WallBlock.EAST_WALL_SHAPE, WallShape.LOW).with(WallBlock.WEST_WALL_SHAPE, WallShape.LOW)
+                .with(WallBlock.NORTH_WALL_SHAPE, WallShape.LOW).with(WallBlock.SOUTH_WALL_SHAPE, WallShape.LOW);
     }
 
     // Should be indestructible by TNT, also lets me ignore some edge cases.
@@ -78,7 +78,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         makeWaystoneHere(pos, world, placer);
     }
 
-    private void onRemoved(World world, BlockPos pos) {
+    public static void onRemoved(World world, BlockPos pos) {
         MinecraftServer server = world.getServer();
         assert server != null;
 
@@ -90,7 +90,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         }
 
         if (record != null)
-            storage.destroyWaystone(server, record);
+            storage.destroyWaystone(record);
     }
 
     @Override
@@ -98,13 +98,6 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         if (!world.isClient())
             onRemoved(world, pos);
         return super.onBreak(world, pos, state, player);
-    }
-
-    @Override
-    protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!newState.isOf(ModBlocks.WAYSTONE) && !world.isClient())
-            onRemoved(world, pos);
-        super.onStateReplaced(state, world, pos, newState, moved);
     }
 
     // Open GUI

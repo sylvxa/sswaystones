@@ -4,66 +4,55 @@
 */
 package lol.sylvie.sswaystones.storage;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.*;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.util.NameGenerator;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.PersistentStateType;
 import net.minecraft.world.World;
 
 public class WaystoneStorage extends PersistentState {
-    public HashMap<String, WaystoneRecord> waystones = new HashMap<>();
-    public HashMap<UUID, PlayerData> players = new HashMap<>();
+    public HashMap<String, WaystoneRecord> waystones;
+    public HashMap<UUID, PlayerData> players;
 
-    private static final Type<WaystoneStorage> TYPE = new Type<>(WaystoneStorage::new, WaystoneStorage::createFromNbt,
-            null);
-
-    // Serialization
-    @Override
-    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        // Actual waystone info
-        NbtCompound waystonesNbt = new NbtCompound();
-        waystones.forEach((hash, waystoneRecord) -> waystonesNbt.put(hash, waystoneRecord.toNbt()));
-        nbt.put("waystones", waystonesNbt);
-
-        // Player-specific waystone info
-        NbtCompound playersNbt = new NbtCompound();
-        players.forEach((uuid, playerData) -> playersNbt.put(uuid.toString(), playerData.toNbt()));
-        nbt.put("players", playersNbt);
-
-        return nbt;
+    public WaystoneStorage() {
+        this(new HashMap<>(), new HashMap<>());
     }
 
-    // Deserialization
-    public static WaystoneStorage createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        WaystoneStorage storage = new WaystoneStorage();
+    public WaystoneStorage(Map<String, WaystoneRecord> waystones, Map<UUID, PlayerData> players) {
+        this.waystones = new HashMap<>(waystones);
+        this.players = new HashMap<>(players);
+    }
 
-        // Actual waystone info
-        NbtCompound waystonesNbt = tag.getCompound("waystones");
-        waystonesNbt.getKeys().forEach((hash) -> {
-            NbtCompound waystoneNbt = waystonesNbt.getCompound(hash);
-            storage.waystones.put(hash, WaystoneRecord.fromNbt(waystoneNbt));
-        });
+    public static final Codec<WaystoneStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.unboundedMap(Codec.STRING, WaystoneRecord.CODEC).fieldOf("waystones")
+                    .forGetter(WaystoneStorage::getWaystones),
+            Codec.unboundedMap(Uuids.CODEC, PlayerData.CODEC).fieldOf("players").forGetter(WaystoneStorage::getPlayers))
+            .apply(instance, WaystoneStorage::new));
 
-        // Player-specific waystone info
-        NbtCompound playersNbt = tag.getCompound("players");
-        playersNbt.getKeys().forEach((uuid) -> {
-            NbtCompound playerNbt = playersNbt.getCompound(uuid);
-            storage.players.put(UUID.fromString(uuid), PlayerData.fromNbt(playerNbt));
-        });
+    private static final PersistentStateType<WaystoneStorage> TYPE = new PersistentStateType<>(Waystones.MOD_ID,
+            WaystoneStorage::new, CODEC, null);
 
-        return storage;
+    public Map<String, WaystoneRecord> getWaystones() {
+        return waystones;
+    }
+
+    public Map<UUID, PlayerData> getPlayers() {
+        return players;
     }
 
     public static WaystoneStorage getServerState(MinecraftServer server) {
         PersistentStateManager persistentStateManager = Objects.requireNonNull(server.getWorld(World.OVERWORLD))
                 .getPersistentStateManager();
-        WaystoneStorage state = persistentStateManager.getOrCreate(TYPE, Waystones.MOD_ID);
+        WaystoneStorage state = persistentStateManager.getOrCreate(TYPE);
 
         state.markDirty();
 
@@ -77,7 +66,6 @@ public class WaystoneStorage extends PersistentState {
     }
 
     // Utility functions
-    // Shorthand to get waystone record by hash
     public WaystoneRecord getWaystone(String hash) {
         return this.waystones.get(hash);
     }
@@ -85,7 +73,7 @@ public class WaystoneStorage extends PersistentState {
     // Create a waystone
     public WaystoneRecord createWaystone(BlockPos pos, World world, LivingEntity player) {
         WaystoneRecord record = new WaystoneRecord(player.getUuid(), player.getName().getString(),
-                NameGenerator.generateName(), pos, world.getRegistryKey(), false, null);
+                NameGenerator.generateName(), pos, world.getRegistryKey(), false, Items.PLAYER_HEAD);
         String hash = record.getHash();
         this.waystones.put(hash, record);
 
@@ -113,7 +101,7 @@ public class WaystoneStorage extends PersistentState {
     }
 
     // Remove all traces of waystone
-    public void destroyWaystone(MinecraftServer server, WaystoneRecord record) {
+    public void destroyWaystone(WaystoneRecord record) {
         amnesiaWaystone(record);
 
         this.waystones.remove(record.getHash());

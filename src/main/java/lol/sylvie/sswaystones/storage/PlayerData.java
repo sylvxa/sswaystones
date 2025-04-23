@@ -4,34 +4,28 @@
 */
 package lol.sylvie.sswaystones.storage;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 
 public class PlayerData {
-    public List<String> discoveredWaystones = new ArrayList<>();
+    public ArrayList<String> discoveredWaystones;
 
-    public NbtCompound toNbt() {
-        NbtCompound playerTag = new NbtCompound();
-
-        NbtList discoveredList = new NbtList();
-        discoveredWaystones.forEach((hash) -> discoveredList.add(NbtString.of(hash)));
-        playerTag.put("discovered_waystones", discoveredList);
-
-        return playerTag;
+    public PlayerData() {
+        this(new ArrayList<>());
     }
 
-    public static PlayerData fromNbt(NbtCompound nbt) {
-        PlayerData data = new PlayerData();
-
-        NbtList nbtDiscoveredList = nbt.getList("discovered_waystones", NbtElement.STRING_TYPE);
-        data.discoveredWaystones = nbtDiscoveredList.stream().map(NbtElement::asString)
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        return data;
+    public PlayerData(List<String> discoveredWaystones) {
+        this.discoveredWaystones = new ArrayList<>(discoveredWaystones);
     }
+
+    public List<String> getDiscoveredWaystones() {
+        return discoveredWaystones;
+    }
+
+    public static final Codec<PlayerData> CODEC = RecordCodecBuilder.create(instance -> instance
+            .group(Codec.STRING.listOf().fieldOf("discovered_waystones").forGetter(PlayerData::getDiscoveredWaystones))
+            .apply(instance, PlayerData::new));
+
 }
