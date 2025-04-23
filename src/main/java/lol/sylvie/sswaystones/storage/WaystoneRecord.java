@@ -16,6 +16,7 @@ import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.block.ModBlocks;
 import lol.sylvie.sswaystones.config.Configuration;
 import lol.sylvie.sswaystones.util.HashUtil;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.component.DataComponentTypes;
@@ -27,6 +28,7 @@ import net.minecraft.item.Items;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -47,7 +49,7 @@ public final class WaystoneRecord {
     private String waystoneName;
     private final BlockPos pos; // Must be final as the hash is calculated based on pos and world
     private final RegistryKey<World> world;
-    private boolean global;
+    private final AccessSettings accessSettings;
     private Item icon;
 
     public static final Codec<WaystoneRecord> CODEC = RecordCodecBuilder.create(instance -> instance
@@ -56,27 +58,112 @@ public final class WaystoneRecord {
                     Codec.STRING.fieldOf("waystone_name").forGetter(WaystoneRecord::getWaystoneName),
                     BlockPos.CODEC.fieldOf("position").forGetter(WaystoneRecord::getPos),
                     World.CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
-                    Codec.BOOL.fieldOf("global").forGetter(WaystoneRecord::isGlobal), Registries.ITEM.getCodec()
-                            .optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
+                    AccessSettings.CODEC.fieldOf("access_settings").forGetter(WaystoneRecord::getAccessSettings),
+                    Registries.ITEM.getCodec().optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
             .apply(instance, WaystoneRecord::new));
 
     public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world,
-            boolean global, Item icon) {
+            AccessSettings accessSettings, Item icon) {
         this.owner = owner;
         this.ownerName = ownerName;
         this.setWaystoneName(waystoneName); // Limits waystone name
         this.pos = pos;
         this.world = world;
-        this.global = global;
+        this.accessSettings = accessSettings;
         this.icon = icon == null ? Items.PLAYER_HEAD : icon;
     }
 
-    public String asString() {
-        return HashUtil.waystoneIdentifier(pos, world);
+    public void handleTeleport(ServerPlayerEntity player) {
+        MinecraftServer server = player.getServer();
+        assert server != null;
+
+        // Run on main thread to avoid a race condition for Geyser players
+        if (!server.isOnThread()) {
+            server.execute(() -> handleTeleport(player));
+            return;
+        }
+
+        Configuration.Instance config = Waystones.configuration.getInstance();
+
+        // Experience cost
+        int requiredXp = getXpCost(player);
+        if (requiredXp > 0) {
+            if (player.experienceLevel < requiredXp) {
+                player.sendMessage(
+                        Text.translatable("error.sswaystones.not_enough_xp", requiredXp - player.experienceLevel)
+                                .formatted(Formatting.RED),
+                        true);
+                return;
+            } else {
+                player.addExperienceLevels(Math.min(-requiredXp, 0)); // Stop negative values from adding xp
+            }
+        }
+
+        // This may happen if someone has a waystone in a dimension from a mod that is no longer present
+        ServerWorld targetWorld = this.getWorld(server);
+        if (targetWorld == null) {
+            player.sendMessage(Text.translatable("error.sswaystones.no_dimension").formatted(Formatting.RED));
+            return;
+        }
+
+        // Remove invalid waystones
+        BlockPos target = this.getPos();
+        if (!targetWorld.getBlockState(target).isOf(ModBlocks.WAYSTONE) && config.removeInvalidWaystones) {
+            WaystoneStorage.getServerState(server).destroyWaystone(this);
+            player.sendMessage(Text.translatable("error.sswaystones.invalid_waystone").formatted(Formatting.RED));
+            return;
+        }
+
+        if (config.safeTeleport) {
+            // Remove any blocks trying to suffocate the player
+            BlockPos head = target.add(0, 1, 0);
+            BlockState headState = targetWorld.getBlockState(head);
+            if (!headState.getCollisionShape(targetWorld, head).isEmpty()) {
+                if (headState.getHardness(targetWorld, head) != -1) {
+                    player.getServer().executeSync(() -> targetWorld.breakBlock(head, true));
+                }
+            }
+
+            // Make sure there is a platform beneath the waystone
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    BlockPos ground = this.pos.add(x, -1, z);
+                    if (targetWorld.getBlockState(ground).isAir()) {
+                        targetWorld.setBlockState(ground, Blocks.COBBLESTONE.getDefaultState());
+                    }
+                }
+            }
+        }
+
+        // Search for a suitable teleport location
+        List<Vec3i> positionChecks = List.of(new Vec3i(-1, -1, 0), new Vec3i(1, -1, 0), new Vec3i(0, -1, -1),
+                new Vec3i(0, -1, 1), new Vec3i(-1, -1, -1), new Vec3i(1, -1, 1), new Vec3i(1, -1, -1),
+                new Vec3i(-1, -1, 1));
+
+        for (Vec3i checkPos : positionChecks) {
+            BlockPos ground = target.add(checkPos);
+            BlockPos feet = ground.add(0, 1, 0);
+            BlockPos head = feet.add(0, 1, 0);
+
+            if (!targetWorld.getBlockState(ground).getCollisionShape(targetWorld, ground).isEmpty()
+                    && targetWorld.getBlockState(feet).getCollisionShape(targetWorld, feet).isEmpty()
+                    && targetWorld.getBlockState(head).getCollisionShape(targetWorld, head).isEmpty()) {
+                target = feet;
+                break;
+            }
+        }
+
+        // Teleport!
+        Vec3d center = target.toBottomCenterPos();
+        player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), Set.of(), player.getYaw(),
+                player.getPitch(), false);
+        targetWorld.playSound(null, target, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1f);
+        targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(),
+                16, 0.5d, 0.5d, 0.5d, 0.1d);
     }
 
-    public String getHash() {
-        return HashUtil.getHash(this);
+    public boolean canPlayerEdit(ServerPlayerEntity player) {
+        return this.getOwnerUUID().equals(player.getUuid()) || Permissions.check(player, "sswaystones.manager", 4);
     }
 
     public int getXpCost(ServerPlayerEntity player) {
@@ -88,132 +175,11 @@ public final class WaystoneRecord {
                 : config.crossDimensionXpCost;
     }
 
-    public void handleTeleport(ServerPlayerEntity player) {
-        MinecraftServer server = player.getServer();
-        assert server != null;
-
-        // Run on main thread
-        server.execute(() -> {
-            Configuration.Instance config = Waystones.configuration.getInstance();
-
-            // Experience cost
-            int requiredXp = getXpCost(player);
-            if (requiredXp > 0) {
-                if (player.experienceLevel < requiredXp) {
-                    player.sendMessage(
-                            Text.translatable("error.sswaystones.not_enough_xp", requiredXp - player.experienceLevel)
-                                    .formatted(Formatting.RED),
-                            true);
-                    return;
-                } else {
-                    player.addExperienceLevels(Math.min(-requiredXp, 0)); // Stop negative values from adding xp
-                }
-            }
-
-            BlockPos target = this.getPos();
-            ServerWorld targetWorld = this.getWorld(server);
-
-            if (targetWorld == null) {
-                player.sendMessage(Text.translatable("error.sswaystones.no_dimension").formatted(Formatting.RED));
-                return;
-            }
-
-            // Remove invalid waystones
-            if (!targetWorld.getBlockState(target).isOf(ModBlocks.WAYSTONE) && config.removeInvalidWaystones) {
-                WaystoneStorage.getServerState(server).destroyWaystone(this);
-                player.sendMessage(Text.translatable("error.sswaystones.invalid_waystone").formatted(Formatting.RED));
-                return;
-            }
-
-            if (config.safeTeleport) {
-                // Remove any blocks trying to suffocate the player
-                BlockPos head = target.add(0, 1, 0);
-                BlockState headState = targetWorld.getBlockState(head);
-                if (!headState.getCollisionShape(targetWorld, head).isEmpty()) {
-                    if (headState.getHardness(targetWorld, head) != -1) {
-                        player.getServer().executeSync(() -> targetWorld.breakBlock(head, true));
-                    }
-                }
-
-                // Make sure there is a platform beneath the waystone
-                for (int x = -1; x <= 1; x++) {
-                    for (int z = -1; z <= 1; z++) {
-                        BlockPos ground = this.pos.add(x, -1, z);
-                        if (targetWorld.getBlockState(ground).isAir()) {
-                            targetWorld.setBlockState(ground, Blocks.COBBLESTONE.getDefaultState());
-                        }
-                    }
-                }
-            }
-
-            // Search for a suitable teleport location
-            List<Vec3i> positionChecks = List.of(new Vec3i(-1, -1, 0), new Vec3i(1, -1, 0), new Vec3i(0, -1, -1),
-                    new Vec3i(0, -1, 1), new Vec3i(-1, -1, -1), new Vec3i(1, -1, 1), new Vec3i(1, -1, -1),
-                    new Vec3i(-1, -1, 1));
-
-            for (Vec3i checkPos : positionChecks) {
-                BlockPos ground = target.add(checkPos);
-                BlockPos feet = ground.add(0, 1, 0);
-                BlockPos head = feet.add(0, 1, 0);
-
-                if (!targetWorld.getBlockState(ground).getCollisionShape(targetWorld, ground).isEmpty()
-                        && targetWorld.getBlockState(feet).getCollisionShape(targetWorld, feet).isEmpty()
-                        && targetWorld.getBlockState(head).getCollisionShape(targetWorld, head).isEmpty()) {
-                    target = feet;
-                    break;
-                }
-            }
-
-            // Teleport!
-            Vec3d center = target.toBottomCenterPos();
-            player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), Set.of(), player.getYaw(),
-                    player.getPitch(), false);
-            targetWorld.playSound(null, target, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1f);
-            targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(),
-                    16, 0.5d, 0.5d, 0.5d, 0.1d);
-        });
-    }
-
-    public UUID getOwnerUUID() {
-        return owner;
-    }
-
-    public String getOwnerName() {
-        return ownerName;
-    }
-
-    public String getWaystoneName() {
-        return waystoneName;
-    }
-
-    public Text getWaystoneText() {
-        return Text.literal(this.getWaystoneName());
-    }
-
-    public BlockPos getPos() {
-        return pos;
-    }
-
-    public RegistryKey<World> getWorldKey() {
-        return world;
-    }
-
-    public ServerWorld getWorld(MinecraftServer server) {
-        return server.getWorld(this.getWorldKey());
-    }
-
-    public boolean isGlobal() {
-        return global;
-    }
-
-    public Item getIcon() {
-        return icon;
-    }
-
     public ItemStack getIconOrHead(@Nullable MinecraftServer server) {
         if (icon != null && icon != Items.PLAYER_HEAD)
             return icon.getDefaultStack();
 
+        // The server has to fetch the player's skin
         GameProfile profile = new GameProfile(this.getOwnerUUID(), this.getOwnerName());
         if (server != null && server.getSessionService().getTextures(profile) == MinecraftProfileTextures.EMPTY) {
             ProfileResult fetched = server.getSessionService().fetchProfile(profile.getId(), false);
@@ -226,9 +192,22 @@ public final class WaystoneRecord {
         return head;
     }
 
+    // Getters and setters
+    public UUID getOwnerUUID() {
+        return owner;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
     public void setOwner(PlayerEntity player) {
         this.owner = player.getUuid();
         this.ownerName = player.getGameProfile().getName();
+    }
+
+    public String getWaystoneName() {
+        return waystoneName;
     }
 
     public void setWaystoneName(String waystoneName) {
@@ -236,15 +215,100 @@ public final class WaystoneRecord {
         this.waystoneName = waystoneName;
     }
 
-    public void setGlobal(boolean global) {
-        this.global = global;
+    public BlockPos getPos() {
+        return pos;
+    }
+
+    public RegistryKey<World> getWorldKey() {
+        return world;
+    }
+
+    public AccessSettings getAccessSettings() {
+        return accessSettings;
+    }
+
+    public Item getIcon() {
+        return icon;
     }
 
     public void setIcon(Item icon) {
         this.icon = icon;
     }
 
-    public boolean canEdit(ServerPlayerEntity player) {
-        return this.getOwnerUUID().equals(player.getUuid()) || player.hasPermissionLevel(4);
+    public static class AccessSettings {
+        private boolean global; // Blanket flag, allows all players to access
+        private boolean server; // Hides the actual owner and makes it unbreakable
+        private String team; // Scoreboard team
+
+        public static final Codec<AccessSettings> CODEC = RecordCodecBuilder.create(instance -> instance
+                .group(Codec.BOOL.fieldOf("global").forGetter(AccessSettings::isGlobal),
+                        Codec.BOOL.fieldOf("server").forGetter(AccessSettings::isServerOwned),
+                        Codec.STRING.fieldOf("team").forGetter(AccessSettings::getTeam))
+                .apply(instance, AccessSettings::new));
+
+        public AccessSettings(boolean global, boolean server, String team) {
+            this.global = global;
+            this.server = server;
+            this.team = team;
+        }
+
+        public boolean canPlayerAccess(WaystoneRecord parent, ServerPlayerEntity player) {
+            PlayerData data = WaystoneStorage.getPlayerState(player);
+            if (data.discoveredWaystones.contains(parent.getHash())) return true;
+
+            if (this.isGlobal())
+                return true;
+            if (this.isServerOwned())
+                return true;
+            Team team = player.getScoreboardTeam();
+            if (team != null && team.getName().equals(this.team))
+                return true;
+
+            return false;
+        }
+
+        public boolean isGlobal() {
+            return global;
+        }
+
+        public void setGlobal(boolean global) {
+            this.global = global;
+        }
+
+        public boolean isServerOwned() {
+            return server;
+        }
+
+        public void setServerOwned(boolean server) {
+            this.server = server;
+        }
+
+        public String getTeam() {
+            return team;
+        }
+
+        public void setTeam(String team) {
+            this.team = team;
+        }
+
+        public boolean hasTeam() {
+            return !this.getTeam().isEmpty();
+        }
+    }
+
+    public String asString() {
+        return HashUtil.waystoneIdentifier(pos, world);
+    }
+
+    public String getHash() {
+        return HashUtil.getHash(this);
+    }
+
+    public Text getWaystoneText() {
+        return Text.literal(this.getWaystoneName());
+    }
+
+    public ServerWorld getWorld(MinecraftServer server) {
+        return server.getWorld(this.getWorldKey());
     }
 }

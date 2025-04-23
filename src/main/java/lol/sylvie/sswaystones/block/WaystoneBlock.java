@@ -12,6 +12,7 @@ import lol.sylvie.sswaystones.storage.PlayerData;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.HashUtil;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -24,12 +25,14 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
@@ -61,10 +64,20 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         return 1200;
     }
 
-    private WaystoneRecord makeWaystoneHere(BlockPos pos, World world, LivingEntity owner) {
+    private static WaystoneRecord createWaystone(BlockPos pos, World world, ServerPlayerEntity player) {
+        if (!Permissions.check(player, "sswaystones.create", true)) {
+            player.sendMessage(Text.translatable("error.sswaystones.no_create_permission").formatted(Formatting.RED));
+            return null;
+        }
+
         assert world.getServer() != null;
         WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
-        return storage.createWaystone(pos, world, owner);
+        return storage.createWaystone(pos, world, player);
+    }
+
+    private static WaystoneRecord getWaystone(BlockPos pos, ServerWorld world) {
+        WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
+        return storage.getWaystone(HashUtil.getHash(pos, world.getRegistryKey()));
     }
 
     // Placing & breaking
@@ -75,7 +88,9 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
 
         if (world.isClient || placer == null)
             return;
-        makeWaystoneHere(pos, world, placer);
+        if (!(placer instanceof ServerPlayerEntity player))
+            return;
+        createWaystone(pos, world, player);
     }
 
     public static void onRemoved(World world, BlockPos pos) {
@@ -83,7 +98,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         assert server != null;
 
         WaystoneStorage storage = WaystoneStorage.getServerState(server);
-        WaystoneRecord record = storage.getWaystone(HashUtil.getHash(pos, world.getRegistryKey()));
+        WaystoneRecord record = getWaystone(pos, (ServerWorld) world);
 
         if (world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystoneBlockEntity) {
             waystoneBlockEntity.removeDisplay();
@@ -100,6 +115,16 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
         return super.onBreak(world, pos, state, player);
     }
 
+    @Override
+    protected float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
+        WaystoneRecord record = getWaystone(pos, (ServerWorld) world);
+        if (record == null || Permissions.check(player, "sswaystones.create.server", 4)) {
+            return super.calcBlockBreakingDelta(state, player, world, pos);
+        }
+
+        return record.getAccessSettings().isServerOwned() ? 0 : super.calcBlockBreakingDelta(state, player, world, pos);
+    }
+
     // Open GUI
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
@@ -113,7 +138,9 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
             WaystoneRecord record = storage.getWaystone(waystoneHash);
 
             if (record == null) {
-                record = makeWaystoneHere(pos, world, serverPlayer);
+                WaystoneRecord newWaystone = createWaystone(pos, world, serverPlayer);
+                if (newWaystone == null) return ActionResult.FAIL;
+                record = newWaystone;
             }
 
             if (!playerData.discoveredWaystones.contains(waystoneHash)) {

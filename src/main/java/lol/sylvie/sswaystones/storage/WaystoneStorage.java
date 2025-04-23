@@ -12,6 +12,7 @@ import lol.sylvie.sswaystones.util.NameGenerator;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
@@ -59,7 +60,7 @@ public class WaystoneStorage extends PersistentState {
         return state;
     }
 
-    public static PlayerData getPlayerState(LivingEntity player) {
+    public static PlayerData getPlayerState(ServerPlayerEntity player) {
         WaystoneStorage serverState = getServerState(Objects.requireNonNull(player.getWorld().getServer()));
 
         return serverState.players.computeIfAbsent(player.getUuid(), uuid -> new PlayerData());
@@ -70,25 +71,26 @@ public class WaystoneStorage extends PersistentState {
         return this.waystones.get(hash);
     }
 
+    public List<WaystoneRecord> getAccessibleWaystones(ServerPlayerEntity player, WaystoneRecord record) {
+        // Get all waystones that the player can access
+        // Sorted by name, though prioritize server owned waystones
+        return this.waystones.values().stream()
+                .filter(waystone -> waystone.getAccessSettings().canPlayerAccess(waystone, player) && waystone != record)
+                .sorted(Comparator.comparing(WaystoneRecord::getWaystoneName))
+                .sorted(Comparator.comparing((waystone) -> !waystone.getAccessSettings().isServerOwned()))
+                .toList();
+    }
+
     // Create a waystone
-    public WaystoneRecord createWaystone(BlockPos pos, World world, LivingEntity player) {
+    public WaystoneRecord createWaystone(BlockPos pos, World world, ServerPlayerEntity player) {
         WaystoneRecord record = new WaystoneRecord(player.getUuid(), player.getName().getString(),
-                NameGenerator.generateName(), pos, world.getRegistryKey(), false, Items.PLAYER_HEAD);
+                NameGenerator.generateName(), pos, world.getRegistryKey(), new WaystoneRecord.AccessSettings(false, false, ""), Items.PLAYER_HEAD);
         String hash = record.getHash();
         this.waystones.put(hash, record);
 
         getPlayerState(player).discoveredWaystones.add(hash);
 
         return record;
-    }
-
-    // Get all known waystones
-    public List<WaystoneRecord> getDiscoveredWaystones(LivingEntity player) {
-        PlayerData playerData = getPlayerState(player);
-
-        return this.waystones.entrySet().stream()
-                .filter(r -> playerData.discoveredWaystones.contains(r.getKey()) || r.getValue().isGlobal())
-                .map(Map.Entry::getValue).toList();
     }
 
     // Make all players forget about waystone

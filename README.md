@@ -27,13 +27,18 @@ The file is saved in `config/sswaystones.json`, and can be edited either manuall
 - `/sswaystones config reload` (loads configuration from disk)
 - `/sswaystones config save` (saves configuration to disk)
 
-## Roadmap
-- [x] Add optional XP price for teleporting.
-- [x] More configuration
-- [ ] More items (~~Portable Waystone~~, Scrolls, etc.)
+# Permissions
+- `sswaystones.manager`: Allows the player to edit and steal *all* waystones. (requires op by default)
+- `sswaystones.create`: Allows the player to create waystones. (enabled by default)
+- - `sswaystones.create.global`: Allows the player to create global waystones. (enabled by default)
+- - `sswaystones.create.team`: Allows the player to create team-available waystones. (enabled by default)
+- - `sswaystones.create.server`: Allows the player to create and break "server-owned" waystones. (requires op by default)
 
 ## Contributing
 If there is a bug you would like to fix or a feature you'd like to propose, you may make a Pull Request and it will be reviewed.
 
 ### Translating
 If you would like to translate this mod into another language, you can do so by creating its respective language file in `src/main/resources/data/sswaystones/lang` and making a PR, all of the keys are in the default `en_us.json` and you can find a tutorial on how translations work on the [Fabric Wiki](https://fabricmc.net/wiki/tutorial:lang). (just make sure you make it in the `data` folder and not `assets`!)
+
+> [!NOTE]  
+> I will not *maintain* added languages, so they may fall out of date as new features are added!

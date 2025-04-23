@@ -42,6 +42,8 @@ dependencies {
 	modImplementation include("xyz.nucleoid:server-translations-api:${project.server_translations_version}")
 
 	compileOnly("org.geysermc.floodgate:api:${project.floodgate_version}")
+
+	include(modImplementation("me.lucko:fabric-permissions-api:${project.fabric_permissions_version}"))
 }
 
 processResources {

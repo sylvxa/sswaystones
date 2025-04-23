@@ -25,8 +25,11 @@ public class ViewerUtil {
             return;
         }
 
+        openJavaGui(player, record);
+    }
+
+    public static void openJavaGui(ServerPlayerEntity player, @Nullable WaystoneRecord record) {
         JavaViewerGui gui = new JavaViewerGui(player, record);
-        gui.updateMenu();
         gui.open();
     }
 }
