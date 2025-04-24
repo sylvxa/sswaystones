@@ -58,7 +58,7 @@ public final class WaystoneRecord {
             Codec.STRING.fieldOf("waystone_name").forGetter(WaystoneRecord::getWaystoneName),
             BlockPos.CODEC.fieldOf("position").forGetter(WaystoneRecord::getPos),
             World.CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
-            AccessSettings.CODEC.fieldOf("access_settings").forGetter(WaystoneRecord::getAccessSettings),
+            AccessSettings.CODEC.optionalFieldOf("access_settings", new AccessSettings(false, false, "")).forGetter(WaystoneRecord::getAccessSettings),
             Registries.ITEM.getCodec().optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
             .apply(instance, WaystoneRecord::new));
 
