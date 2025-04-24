@@ -285,12 +285,15 @@ public class JavaViewerGui extends SimpleGui {
 
             // If no settings were available
             if (slot == 10) {
-                this.setSlot(13, new GuiElementBuilder(Items.BARRIER)
-                                .setLore(List.of(Text.translatable("error.sswaystones.no_modification_permission").formatted(Formatting.GRAY)))
-                        .setName(Text.translatable("gui.back").formatted(Formatting.RED)).setCallback((index, type, action, gui) -> {
-                            this.close();
-                        ViewerUtil.openJavaGui(player, waystone);
-                        }));
+                this.setSlot(13,
+                        new GuiElementBuilder(Items.BARRIER)
+                                .setLore(List.of(Text.translatable("error.sswaystones.no_modification_permission")
+                                        .formatted(Formatting.GRAY)))
+                                .setName(Text.translatable("gui.back").formatted(Formatting.RED))
+                                .setCallback((index, type, action, gui) -> {
+                                    this.close();
+                                    ViewerUtil.openJavaGui(player, waystone);
+                                }));
             }
         }
 
