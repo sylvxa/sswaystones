@@ -26,6 +26,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 public class WaystoneBlockEntity extends BlockEntity {
@@ -43,15 +44,17 @@ public class WaystoneBlockEntity extends BlockEntity {
     }
 
     public static void tick(World world, WaystoneBlockEntity waystoneEntity) {
-        boolean shouldCreateName = waystoneEntity.getThisWaystone(world) != null && waystoneEntity.nameDisplay == null;
-        WaystoneRecord record = waystoneEntity.waystone;
+        WaystoneRecord record = waystoneEntity.getThisWaystone(world);
+        boolean shouldCreateName = record != null && waystoneEntity.nameDisplay == null;
 
         Formatting color = Formatting.RESET;
-        String teamName = record.getAccessSettings().getTeam();
-        if (!teamName.isEmpty()) {
-            Team team = world.getScoreboard().getTeam(teamName);
-            if (team != null) {
-                color = team.getColor();
+        if (record != null) {
+            String teamName = record.getAccessSettings().getTeam();
+            if (!teamName.isEmpty()) {
+                Team team = world.getScoreboard().getTeam(teamName);
+                if (team != null) {
+                    color = team.getColor();
+                }
             }
         }
 
@@ -83,7 +86,7 @@ public class WaystoneBlockEntity extends BlockEntity {
         waystoneEntity.nameDisplay.setOffset(new Vec3d(0, y, 0));
     }
 
-    private WaystoneRecord getThisWaystone(World world) {
+    private @Nullable WaystoneRecord getThisWaystone(World world) {
         if (world.isClient())
             return null;
         assert world.getServer() != null; // World can't be client.

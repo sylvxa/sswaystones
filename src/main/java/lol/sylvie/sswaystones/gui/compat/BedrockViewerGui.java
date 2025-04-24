@@ -84,7 +84,7 @@ public class BedrockViewerGui {
             builder.toggle("Global", accessSettings.isGlobal());
         }
 
-        boolean teamAvailable = Permissions.check(player, "sswaystones.create.team", true);
+        boolean teamAvailable = player.getScoreboardTeam() != null && Permissions.check(player, "sswaystones.create.team", true);
         if (teamAvailable) {
             builder.toggle("Team", accessSettings.hasTeam());
         }
