@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "waystone",
+  "key": {
+    "B": "minecraft:mud_bricks",
+    "E": "minecraft:ender_eye",
+    "R": "minecraft:redstone",
+    "W": "minecraft:mud_brick_wall"
+  },
+  "pattern": [
+    " E ",
+    "RWR",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "sswaystones:mud_bricks_waystone"
+  }
+}

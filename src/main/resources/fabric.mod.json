@@ -17,6 +17,9 @@
   "entrypoints": {
     "main": [
       "lol.sylvie.sswaystones.Waystones"
+    ],
+    "fabric-datagen": [
+      "lol.sylvie.sswaystones.datagen.WaystoneDataGenerator"
     ]
   },
   "mixins": [

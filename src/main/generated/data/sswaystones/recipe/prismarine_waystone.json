@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "waystone",
+  "key": {
+    "B": "minecraft:prismarine",
+    "E": "minecraft:ender_eye",
+    "R": "minecraft:redstone",
+    "W": "minecraft:prismarine_wall"
+  },
+  "pattern": [
+    " E ",
+    "RWR",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "sswaystones:prismarine_waystone"
+  }
+}

@@ -1,9 +1,10 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "lol.sylvie.sswaystones.mixin",
+  "package": "lol.sylvie.sswaystones.datagen.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "FabricLanguageProviderMixin"
   ],
   "client": [
   ],

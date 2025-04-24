@@ -6,7 +6,6 @@ package lol.sylvie.sswaystones.block;
 
 import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
-import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.gui.ViewerUtil;
 import lol.sylvie.sswaystones.storage.PlayerData;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
@@ -21,15 +20,12 @@ import net.minecraft.block.enums.WallShape;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
@@ -38,22 +34,26 @@ import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
-    public static final Identifier ID = Waystones.id("waystone");
-    public static final RegistryKey<Block> KEY = RegistryKey.of(Registries.BLOCK.getKey(), ID);
+    private final WaystoneStyle style;
 
-    public WaystoneBlock(Settings settings) {
+    public WaystoneBlock(WaystoneStyle style, Settings settings) {
         super(settings);
+        this.style = style;
+    }
+
+    public WaystoneStyle getStyle() {
+        return style;
     }
 
     @Override
     protected MapCodec<? extends BlockWithEntity> getCodec() {
-        return createCodec(WaystoneBlock::new);
+        return createCodec((settings) -> new WaystoneBlock(style, settings));
     }
 
     // Visuals
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext packetContext) {
-        return Blocks.STONE_BRICK_WALL.getDefaultState().with(WallBlock.UP, true)
+        return this.style.getWall().getDefaultState().with(WallBlock.UP, true)
                 .with(WallBlock.EAST_WALL_SHAPE, WallShape.LOW).with(WallBlock.WEST_WALL_SHAPE, WallShape.LOW)
                 .with(WallBlock.NORTH_WALL_SHAPE, WallShape.LOW).with(WallBlock.SOUTH_WALL_SHAPE, WallShape.LOW);
     }

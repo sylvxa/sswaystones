@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "waystone",
+  "key": {
+    "B": "minecraft:polished_blackstone_bricks",
+    "E": "minecraft:ender_eye",
+    "R": "minecraft:redstone",
+    "W": "minecraft:polished_blackstone_wall"
+  },
+  "pattern": [
+    " E ",
+    "RWR",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "sswaystones:polished_blackstone_bricks_waystone"
+  }
+}

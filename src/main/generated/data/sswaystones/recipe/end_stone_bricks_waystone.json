@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "waystone",
+  "key": {
+    "B": "minecraft:end_stone_bricks",
+    "E": "minecraft:ender_eye",
+    "R": "minecraft:redstone",
+    "W": "minecraft:end_stone_brick_wall"
+  },
+  "pattern": [
+    " E ",
+    "RWR",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "sswaystones:end_stone_bricks_waystone"
+  }
+}

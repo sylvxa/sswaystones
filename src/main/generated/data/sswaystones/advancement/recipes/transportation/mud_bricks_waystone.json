@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_mud_bricks_waystone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "sswaystones:mud_bricks_waystone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "sswaystones:mud_bricks_waystone"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_mud_bricks_waystone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "sswaystones:mud_bricks_waystone"
+    ]
+  }
+}

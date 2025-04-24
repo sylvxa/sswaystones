@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "sswaystones:tuff_bricks_waystone"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tuff_bricks_waystone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "sswaystones:tuff_bricks_waystone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tuff_bricks_waystone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "sswaystones:tuff_bricks_waystone"
+    ]
+  }
+}
