@@ -139,7 +139,8 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
 
             if (record == null) {
                 WaystoneRecord newWaystone = createWaystone(pos, world, serverPlayer);
-                if (newWaystone == null) return ActionResult.FAIL;
+                if (newWaystone == null)
+                    return ActionResult.FAIL;
                 record = newWaystone;
             }
 

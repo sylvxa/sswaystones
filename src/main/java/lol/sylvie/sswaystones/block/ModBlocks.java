@@ -5,6 +5,7 @@
 package lol.sylvie.sswaystones.block;
 
 import eu.pb4.polymer.core.api.block.PolymerBlockUtils;
+import java.util.List;
 import lol.sylvie.sswaystones.Waystones;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.AbstractBlock;
@@ -13,8 +14,6 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
-
-import java.util.List;
 
 public class ModBlocks {
     // This is considered the "default" waystone for backwards compatibility;
@@ -47,11 +46,9 @@ public class ModBlocks {
 
     public static WaystoneBlock registerWaystoneStyle(WaystoneStyle style) {
         AbstractBlock.Settings settings = AbstractBlock.Settings.create().registryKey(style.getBlockRegistryKey())
-                .hardness(1.5f)
-                .resistance(3600000);
+                .hardness(1.5f).resistance(3600000);
         return (WaystoneBlock) register(new WaystoneBlock(style, settings), style.getId());
     }
-
 
     public static void initialize() {
         PolymerBlockUtils.registerBlockEntity(WAYSTONE_BLOCK_ENTITY);

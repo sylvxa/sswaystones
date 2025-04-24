@@ -5,6 +5,7 @@
 package lol.sylvie.sswaystones.item;
 
 import eu.pb4.polymer.core.api.item.PolymerItemGroupUtils;
+import java.util.List;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.block.ModBlocks;
 import lol.sylvie.sswaystones.block.WaystoneBlock;
@@ -18,8 +19,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 
-import java.util.List;
-
 public class ModItems {
     // This is considered the "default" waystone for backwards compatibility;
     public static final WaystoneBlockItem WAYSTONE = registerWaystoneStyle(ModBlocks.WAYSTONE);
@@ -30,10 +29,13 @@ public class ModItems {
     public static final WaystoneBlockItem MUD_WAYSTONE = registerWaystoneStyle(ModBlocks.MUD_WAYSTONE);
     public static final WaystoneBlockItem RESIN_WAYSTONE = registerWaystoneStyle(ModBlocks.RESIN_WAYSTONE);
     public static final WaystoneBlockItem SANDSTONE_WAYSTONE = registerWaystoneStyle(ModBlocks.SANDSTONE_WAYSTONE);
-    public static final WaystoneBlockItem RED_SANDSTONE_WAYSTONE = registerWaystoneStyle(ModBlocks.RED_SANDSTONE_WAYSTONE);
+    public static final WaystoneBlockItem RED_SANDSTONE_WAYSTONE = registerWaystoneStyle(
+            ModBlocks.RED_SANDSTONE_WAYSTONE);
     public static final WaystoneBlockItem PRISMARINE_WAYSTONE = registerWaystoneStyle(ModBlocks.PRISMARINE_WAYSTONE);
-    public static final WaystoneBlockItem NETHER_BRICK_WAYSTONE = registerWaystoneStyle(ModBlocks.NETHER_BRICK_WAYSTONE);
-    public static final WaystoneBlockItem RED_NETHER_BRICK_WAYSTONE = registerWaystoneStyle(ModBlocks.RED_NETHER_BRICK_WAYSTONE);
+    public static final WaystoneBlockItem NETHER_BRICK_WAYSTONE = registerWaystoneStyle(
+            ModBlocks.NETHER_BRICK_WAYSTONE);
+    public static final WaystoneBlockItem RED_NETHER_BRICK_WAYSTONE = registerWaystoneStyle(
+            ModBlocks.RED_NETHER_BRICK_WAYSTONE);
     public static final WaystoneBlockItem BLACKSTONE_WAYSTONE = registerWaystoneStyle(ModBlocks.BLACKSTONE_WAYSTONE);
     public static final WaystoneBlockItem END_STONE_WAYSTONE = registerWaystoneStyle(ModBlocks.END_STONE_WAYSTONE);
 
@@ -61,8 +63,8 @@ public class ModItems {
 
     public static WaystoneBlockItem registerWaystoneStyle(WaystoneBlock block) {
         WaystoneStyle style = block.getStyle();
-        Item.Settings settings = new Item.Settings()
-                .useBlockPrefixedTranslationKey().registryKey(style.getItemRegistryKey()).rarity(Rarity.RARE);
+        Item.Settings settings = new Item.Settings().useBlockPrefixedTranslationKey()
+                .registryKey(style.getItemRegistryKey()).rarity(Rarity.RARE);
         return (WaystoneBlockItem) register(new WaystoneBlockItem(block, settings), style.getId());
     }
 

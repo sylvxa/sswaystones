@@ -1,3 +1,7 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.gui;
 
 public class IconConstants {

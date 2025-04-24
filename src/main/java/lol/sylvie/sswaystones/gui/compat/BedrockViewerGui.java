@@ -43,7 +43,9 @@ public class BedrockViewerGui {
         for (WaystoneRecord record : accessible) {
             boolean server = record.getAccessSettings().isServerOwned();
             FormImage.Type type = server ? FormImage.Type.PATH : FormImage.Type.URL;
-            String image = server ? "textures/ui/filledStar.png" : AVATAR_API.replace("%s", record.getOwnerUUID().toString());
+            String image = server
+                    ? "textures/ui/filledStar.png"
+                    : AVATAR_API.replace("%s", record.getOwnerUUID().toString());
 
             ButtonComponent component = ButtonComponent.of(record.getWaystoneName(), type, image);
             builder.button(component);
@@ -109,7 +111,8 @@ public class BedrockViewerGui {
                 Team playerTeam = player.getScoreboardTeam();
                 if (team && playerTeam != null) {
                     accessSettings.setTeam(playerTeam.getName());
-                } else accessSettings.setTeam("");
+                } else
+                    accessSettings.setTeam("");
 
                 index += 1;
             }

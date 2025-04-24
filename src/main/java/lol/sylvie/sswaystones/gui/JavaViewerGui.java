@@ -7,7 +7,6 @@ package lol.sylvie.sswaystones.gui;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.*;
-
 import java.util.List;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
@@ -68,7 +67,8 @@ public class JavaViewerGui extends SimpleGui {
 
             if (!record.getAccessSettings().isServerOwned())
                 element.setLore(List.of(Text.of(record.getOwnerName())));
-            else element.glow(true);
+            else
+                element.glow(true);
 
             element.setCallback((index, type, action, gui) -> {
                 record.handleTeleport(player);
@@ -77,7 +77,6 @@ public class JavaViewerGui extends SimpleGui {
 
             this.setSlot(slot, element);
         }
-
 
         for (int i = 45; i < 54; i++) {
             this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE).setName(Text.empty()));
@@ -99,7 +98,8 @@ public class JavaViewerGui extends SimpleGui {
             return;
 
         if (waystone.canPlayerEdit(player)) {
-            if (Permissions.check(player, "sswaystones.manager", 4) && !waystone.getOwnerUUID().equals(player.getUuid())) {
+            if (Permissions.check(player, "sswaystones.manager", 4)
+                    && !waystone.getOwnerUUID().equals(player.getUuid())) {
                 this.setSlot(50,
                         new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.CHEST)
                                 .setName(Text.translatable("gui.sswaystones.steal_waystone").formatted(Formatting.RED))
@@ -120,10 +120,9 @@ public class JavaViewerGui extends SimpleGui {
                             .setName(Text.translatable("gui.sswaystones.change_name").formatted(Formatting.YELLOW))
                             .setCallback((index, type, action, gui) -> new NameGui(waystone, player).open()));
 
-            this.setSlot(53,
-                    new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.COMMAND_BLOCK)
-                            .setName(Text.translatable("gui.sswaystones.access_settings").formatted(Formatting.LIGHT_PURPLE))
-                            .setCallback((index, type, action, gui) -> new AccessSettingsGui(waystone, player).open()));
+            this.setSlot(53, new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.COMMAND_BLOCK)
+                    .setName(Text.translatable("gui.sswaystones.access_settings").formatted(Formatting.LIGHT_PURPLE))
+                    .setCallback((index, type, action, gui) -> new AccessSettingsGui(waystone, player).open()));
         }
     }
 
@@ -154,8 +153,7 @@ public class JavaViewerGui extends SimpleGui {
 
             this.setDefaultInputValue(waystone.getWaystoneName());
             this.setSlot(1, new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.CANCEL)
-                    .setName(Text.translatable("gui.back"))
-                    .setCallback((index, type, action, gui) -> gui.close()));
+                    .setName(Text.translatable("gui.back")).setCallback((index, type, action, gui) -> gui.close()));
 
             this.setSlot(2, new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.CHECKMARK)
                     .setName(Text.translatable("gui.done")).setCallback((index, type, action, gui) -> {
@@ -243,8 +241,8 @@ public class JavaViewerGui extends SimpleGui {
             // Global
             if (Permissions.check(player, "sswaystones.create.global", true)) {
                 GuiElementBuilder globalToggle = new GuiElementBuilder(Items.PLAYER_HEAD)
-                        .setSkullOwner(IconConstants.GLOBE)
-                        .setName(Text.translatable("gui.sswaystones.toggle_global").formatted(accessSettings.isGlobal() ? Formatting.GREEN : Formatting.RED));
+                        .setSkullOwner(IconConstants.GLOBE).setName(Text.translatable("gui.sswaystones.toggle_global")
+                                .formatted(accessSettings.isGlobal() ? Formatting.GREEN : Formatting.RED));
 
                 globalToggle.setCallback((index, type, action, gui) -> {
                     accessSettings.setGlobal(!accessSettings.isGlobal());
@@ -259,8 +257,8 @@ public class JavaViewerGui extends SimpleGui {
             if (team != null && Permissions.check(player, "sswaystones.create.team", true)) {
                 String teamName = team.getName();
                 GuiElementBuilder teamToggle = new GuiElementBuilder(Items.PLAYER_HEAD)
-                        .setSkullOwner(IconConstants.SHIELD)
-                        .setName(Text.translatable("gui.sswaystones.toggle_team").formatted(accessSettings.hasTeam() ? Formatting.GREEN : Formatting.RED));
+                        .setSkullOwner(IconConstants.SHIELD).setName(Text.translatable("gui.sswaystones.toggle_team")
+                                .formatted(accessSettings.hasTeam() ? Formatting.GREEN : Formatting.RED));
 
                 teamToggle.setCallback((index, type, action, gui) -> {
                     accessSettings.setTeam(accessSettings.hasTeam() ? "" : teamName);
@@ -274,7 +272,8 @@ public class JavaViewerGui extends SimpleGui {
             if (Permissions.check(player, "sswaystones.create.server", 4)) {
                 GuiElementBuilder serverToggle = new GuiElementBuilder(Items.PLAYER_HEAD)
                         .setSkullOwner(IconConstants.OBSERVER)
-                        .setName(Text.translatable("gui.sswaystones.toggle_server").formatted(accessSettings.isServerOwned() ? Formatting.GREEN : Formatting.RED));
+                        .setName(Text.translatable("gui.sswaystones.toggle_server")
+                                .formatted(accessSettings.isServerOwned() ? Formatting.GREEN : Formatting.RED));
 
                 serverToggle.setCallback((index, type, action, gui) -> {
                     accessSettings.setServerOwned(!accessSettings.isServerOwned());
@@ -286,7 +285,8 @@ public class JavaViewerGui extends SimpleGui {
 
             // If no settings were available
             if (slot == 10) {
-                player.sendMessage(Text.translatable("error.sswaystones.no_modification_permission").formatted(Formatting.RED));
+                player.sendMessage(
+                        Text.translatable("error.sswaystones.no_modification_permission").formatted(Formatting.RED));
                 ViewerUtil.openJavaGui(player, waystone);
             }
         }

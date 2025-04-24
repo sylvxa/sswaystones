@@ -9,7 +9,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.*;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.util.NameGenerator;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -75,16 +74,17 @@ public class WaystoneStorage extends PersistentState {
         // Get all waystones that the player can access
         // Sorted by name, though prioritize server owned waystones
         return this.waystones.values().stream()
-                .filter(waystone -> waystone.getAccessSettings().canPlayerAccess(waystone, player) && waystone != record)
+                .filter(waystone -> waystone.getAccessSettings().canPlayerAccess(waystone, player)
+                        && waystone != record)
                 .sorted(Comparator.comparing(WaystoneRecord::getWaystoneName))
-                .sorted(Comparator.comparing((waystone) -> !waystone.getAccessSettings().isServerOwned()))
-                .toList();
+                .sorted(Comparator.comparing((waystone) -> !waystone.getAccessSettings().isServerOwned())).toList();
     }
 
     // Create a waystone
     public WaystoneRecord createWaystone(BlockPos pos, World world, ServerPlayerEntity player) {
         WaystoneRecord record = new WaystoneRecord(player.getUuid(), player.getName().getString(),
-                NameGenerator.generateName(), pos, world.getRegistryKey(), new WaystoneRecord.AccessSettings(false, false, ""), Items.PLAYER_HEAD);
+                NameGenerator.generateName(), pos, world.getRegistryKey(),
+                new WaystoneRecord.AccessSettings(false, false, ""), Items.PLAYER_HEAD);
         String hash = record.getHash();
         this.waystones.put(hash, record);
 

@@ -52,14 +52,14 @@ public final class WaystoneRecord {
     private final AccessSettings accessSettings;
     private Item icon;
 
-    public static final Codec<WaystoneRecord> CODEC = RecordCodecBuilder.create(instance -> instance
-            .group(Uuids.CODEC.fieldOf("waystone_owner").forGetter(WaystoneRecord::getOwnerUUID),
-                    Codec.STRING.fieldOf("waystone_owner_name").forGetter(WaystoneRecord::getOwnerName),
-                    Codec.STRING.fieldOf("waystone_name").forGetter(WaystoneRecord::getWaystoneName),
-                    BlockPos.CODEC.fieldOf("position").forGetter(WaystoneRecord::getPos),
-                    World.CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
-                    AccessSettings.CODEC.fieldOf("access_settings").forGetter(WaystoneRecord::getAccessSettings),
-                    Registries.ITEM.getCodec().optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
+    public static final Codec<WaystoneRecord> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Uuids.CODEC.fieldOf("waystone_owner").forGetter(WaystoneRecord::getOwnerUUID),
+            Codec.STRING.fieldOf("waystone_owner_name").forGetter(WaystoneRecord::getOwnerName),
+            Codec.STRING.fieldOf("waystone_name").forGetter(WaystoneRecord::getWaystoneName),
+            BlockPos.CODEC.fieldOf("position").forGetter(WaystoneRecord::getPos),
+            World.CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
+            AccessSettings.CODEC.fieldOf("access_settings").forGetter(WaystoneRecord::getAccessSettings),
+            Registries.ITEM.getCodec().optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
             .apply(instance, WaystoneRecord::new));
 
     public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world,
@@ -99,7 +99,8 @@ public final class WaystoneRecord {
             }
         }
 
-        // This may happen if someone has a waystone in a dimension from a mod that is no longer present
+        // This may happen if someone has a waystone in a dimension from a mod that is
+        // no longer present
         ServerWorld targetWorld = this.getWorld(server);
         if (targetWorld == null) {
             player.sendMessage(Text.translatable("error.sswaystones.no_dimension").formatted(Formatting.RED));
@@ -158,8 +159,8 @@ public final class WaystoneRecord {
         player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), Set.of(), player.getYaw(),
                 player.getPitch(), false);
         targetWorld.playSound(null, target, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1f);
-        targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(),
-                16, 0.5d, 0.5d, 0.5d, 0.1d);
+        targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(), 16,
+                0.5d, 0.5d, 0.5d, 0.1d);
     }
 
     public boolean canPlayerEdit(ServerPlayerEntity player) {
@@ -254,7 +255,8 @@ public final class WaystoneRecord {
 
         public boolean canPlayerAccess(WaystoneRecord parent, ServerPlayerEntity player) {
             PlayerData data = WaystoneStorage.getPlayerState(player);
-            if (data.discoveredWaystones.contains(parent.getHash())) return true;
+            if (data.discoveredWaystones.contains(parent.getHash()))
+                return true;
 
             if (this.isGlobal())
                 return true;

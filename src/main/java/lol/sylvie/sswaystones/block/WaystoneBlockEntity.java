@@ -22,7 +22,6 @@ import net.minecraft.item.Items;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -67,8 +66,10 @@ public class WaystoneBlockEntity extends BlockEntity {
         if (RANDOM.nextInt(0, 20) == 0 && world instanceof ServerWorld serverWorld) {
             Vec3d pos = waystoneEntity.getPos().add(0, 1, 0).toCenterPos();
             Integer colorValue = color.getColorValue();
-            serverWorld.spawnParticles(new DustParticleEffect(color == Formatting.RESET || colorValue == null ? Color.RED.getRGB() : colorValue, 1f), pos.getX(), pos.getY(),
-                    pos.getZ(), 8, 0.1d, 0.1d, 0.1d, 0.1d);
+            serverWorld.spawnParticles(
+                    new DustParticleEffect(
+                            color == Formatting.RESET || colorValue == null ? Color.RED.getRGB() : colorValue, 1f),
+                    pos.getX(), pos.getY(), pos.getZ(), 8, 0.1d, 0.1d, 0.1d, 0.1d);
         }
 
         // Waystone title
@@ -114,7 +115,6 @@ public class WaystoneBlockEntity extends BlockEntity {
         WaystoneRecord record = getThisWaystone(world);
         if (record != null) {
             nameDisplay = new TextDisplayElement();
-
 
             nameDisplay.setText(record.getWaystoneText());
             nameDisplay.setTextAlignment(DisplayEntity.TextDisplayEntity.TextAlignment.CENTER);

@@ -7,8 +7,6 @@ package lol.sylvie.sswaystones.item;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import eu.pb4.polymer.core.api.item.PolymerItemUtils;
 import java.util.List;
-import lol.sylvie.sswaystones.Waystones;
-import lol.sylvie.sswaystones.block.ModBlocks;
 import lol.sylvie.sswaystones.block.WaystoneBlock;
 import lol.sylvie.sswaystones.block.WaystoneStyle;
 import net.minecraft.component.DataComponentTypes;
@@ -16,11 +14,7 @@ import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Identifier;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class WaystoneBlockItem extends BlockItem implements PolymerItem {

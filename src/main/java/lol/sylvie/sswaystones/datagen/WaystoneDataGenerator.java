@@ -1,6 +1,9 @@
+/*
+  This file is licensed under the MIT License!
+  https://github.com/sylvxa/sswaystones/blob/main/LICENSE
+*/
 package lol.sylvie.sswaystones.datagen;
 
-import lol.sylvie.sswaystones.datagen.impl.WaystoneEnglishProvider;
 import lol.sylvie.sswaystones.datagen.impl.WaystoneLootTableGenerator;
 import lol.sylvie.sswaystones.datagen.impl.WaystoneRecipeGenerator;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
