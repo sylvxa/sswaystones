@@ -63,6 +63,10 @@ public class Configuration {
         @Description(translation = "config.sswaystones.combat_cooldown")
         public int combatCooldown = 0;
 
+        @SerializedName("waystone_limit")
+        @Description(translation = "config.sswaystones.waystone_limit")
+        public int waystoneLimit = 0;
+
         @SerializedName("paranoid_teleport")
         @Description(translation = "config.sswaystones.paranoid_teleport")
         public boolean safeTeleport = true;

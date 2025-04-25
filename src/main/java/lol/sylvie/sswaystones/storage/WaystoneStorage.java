@@ -9,9 +9,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.*;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.util.NameGenerator;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
@@ -82,6 +85,21 @@ public class WaystoneStorage extends PersistentState {
 
     // Create a waystone
     public WaystoneRecord createWaystone(BlockPos pos, World world, ServerPlayerEntity player) {
+        if (!Permissions.check(player, "sswaystones.create.place", true)) {
+            player.sendMessage(Text.translatable("error.sswaystones.no_create_permission").formatted(Formatting.RED));
+            return null;
+        }
+
+        int waystoneLimit = Waystones.configuration.getInstance().waystoneLimit;
+        int waystoneCount = (int) waystones.values().stream()
+                .filter(w -> w.getOwnerUUID().equals(player.getUuid()) && !w.getAccessSettings().isServerOwned())
+                .count();
+        if (waystoneLimit != 0 && waystoneCount >= waystoneLimit
+                && !Permissions.check(player, "sswaystones.manager.bypass_limit", 4)) {
+            player.sendMessage(Text.translatable("error.sswaystones.reached_limit").formatted(Formatting.RED));
+            return null;
+        }
+
         WaystoneRecord record = new WaystoneRecord(player.getUuid(), player.getName().getString(),
                 NameGenerator.generateName(), pos, world.getRegistryKey(),
                 new WaystoneRecord.AccessSettings(false, false, ""), Items.PLAYER_HEAD);

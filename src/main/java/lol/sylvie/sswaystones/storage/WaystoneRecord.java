@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lol.sylvie.sswaystones.Waystones;
-import lol.sylvie.sswaystones.block.ModBlocks;
+import lol.sylvie.sswaystones.block.WaystoneBlock;
 import lol.sylvie.sswaystones.config.Configuration;
 import lol.sylvie.sswaystones.util.HashUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -58,7 +58,8 @@ public final class WaystoneRecord {
             Codec.STRING.fieldOf("waystone_name").forGetter(WaystoneRecord::getWaystoneName),
             BlockPos.CODEC.fieldOf("position").forGetter(WaystoneRecord::getPos),
             World.CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
-            AccessSettings.CODEC.optionalFieldOf("access_settings", new AccessSettings(false, false, "")).forGetter(WaystoneRecord::getAccessSettings),
+            AccessSettings.CODEC.optionalFieldOf("access_settings", new AccessSettings(false, false, ""))
+                    .forGetter(WaystoneRecord::getAccessSettings),
             Registries.ITEM.getCodec().optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
             .apply(instance, WaystoneRecord::new));
 
@@ -109,7 +110,7 @@ public final class WaystoneRecord {
 
         // Remove invalid waystones
         BlockPos target = this.getPos();
-        if (!targetWorld.getBlockState(target).isOf(ModBlocks.WAYSTONE) && config.removeInvalidWaystones) {
+        if (!(targetWorld.getBlockState(target).getBlock() instanceof WaystoneBlock) && config.removeInvalidWaystones) {
             WaystoneStorage.getServerState(server).destroyWaystone(this);
             player.sendMessage(Text.translatable("error.sswaystones.invalid_waystone").formatted(Formatting.RED));
             return;

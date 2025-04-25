@@ -65,11 +65,6 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
     }
 
     private static WaystoneRecord createWaystone(BlockPos pos, World world, ServerPlayerEntity player) {
-        if (!Permissions.check(player, "sswaystones.create.place", true)) {
-            player.sendMessage(Text.translatable("error.sswaystones.no_create_permission").formatted(Formatting.RED));
-            return null;
-        }
-
         assert world.getServer() != null;
         WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
         return storage.createWaystone(pos, world, player);

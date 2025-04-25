@@ -29,6 +29,7 @@ The file is saved in `config/sswaystones.json`, and can be edited either manuall
 
 # Permissions
 - `sswaystones.manager`: Allows the player to edit and steal *all* waystones. (requires op by default)
+- `sswaystones.command`: Gives access to the /sswaystones command. (requires op by default)
 - `sswaystones.create.place`: Allows the player to create waystones. (enabled by default)
 - `sswaystones.create.global`: Allows the player to create global waystones. (enabled by default)
 - `sswaystones.create.team`: Allows the player to create team-available waystones. (enabled by default)

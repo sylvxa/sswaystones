@@ -22,6 +22,7 @@ import lol.sylvie.sswaystones.config.Configuration;
 import lol.sylvie.sswaystones.config.Description;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
@@ -31,14 +32,11 @@ import net.minecraft.util.Formatting;
 public class WaystonesCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher
-                .register(literal("sswaystones").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
-                    // /waystones
-                    context.getSource().sendFeedback(() -> Text.literal("Server-Sided Waystones by" + " sylvxa"),
-                            false);
+        dispatcher.register(literal("sswaystones")
+                .requires(source -> Permissions.check(source, "sswaystones.command", 4)).executes(context -> {
+                    context.getSource().sendFeedback(() -> Text.literal("Server-Sided Waystones by sylvxa"), false);
                     return 1;
                 }).then(literal("list").executes(context -> {
-                    // /waystones list
                     context.getSource().sendFeedback(() -> Text.translatable("command.sswaystones.list_header"), false);
 
                     WaystoneStorage storage = WaystoneStorage.getServerState(context.getSource().getServer());
