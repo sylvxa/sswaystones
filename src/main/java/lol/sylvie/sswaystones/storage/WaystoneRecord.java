@@ -10,6 +10,7 @@ import com.mojang.authlib.yggdrasil.ProfileResult;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import lol.sylvie.sswaystones.Waystones;
@@ -58,10 +59,19 @@ public final class WaystoneRecord {
             Codec.STRING.fieldOf("waystone_name").forGetter(WaystoneRecord::getWaystoneName),
             BlockPos.CODEC.fieldOf("position").forGetter(WaystoneRecord::getPos),
             World.CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
-            AccessSettings.CODEC.optionalFieldOf("access_settings", new AccessSettings(false, false, ""))
-                    .forGetter(WaystoneRecord::getAccessSettings),
+            AccessSettings.CODEC.optionalFieldOf("access_settings")
+                    .forGetter((i) -> Optional.of(i.getAccessSettings())),
             Registries.ITEM.getCodec().optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
             .apply(instance, WaystoneRecord::new));
+
+    // Optional fields share the same instance of a default value, so we have to use
+    // this weird workaround
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world,
+            Optional<AccessSettings> accessSettings, Item icon) {
+        this(owner, ownerName, waystoneName, pos, world,
+                accessSettings.orElseGet(() -> new AccessSettings(false, false, "")), icon);
+    }
 
     public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world,
             AccessSettings accessSettings, Item icon) {

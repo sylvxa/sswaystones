@@ -74,5 +74,9 @@ public class Configuration {
         @SerializedName("remove_invalid_waystones")
         @Description(translation = "config.sswaystones.remove_invalid_waystones")
         public boolean removeInvalidWaystones = true;
+
+        @SerializedName("physical_icon_display")
+        @Description(translation = "config.sswaystones.physical_icon_display")
+        public boolean physicalIconDisplay = false;
     }
 }
