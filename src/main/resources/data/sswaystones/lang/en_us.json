@@ -50,5 +50,6 @@
   "config.sswaystones.paranoid_teleport": "Enables several checks to make sure waystones aren't trapped when true.",
   "config.sswaystones.remove_invalid_waystones": "Removes invalid waystones when they are removed in the world but not in the records.",
   "config.sswaystones.combat_cooldown": "Disallows using waystones for a configurable amount of time after being hit by a player.",
-  "config.sswaystones.waystone_limit": "The maximum number of waystones a player can have. (0 for unlimited)"
+  "config.sswaystones.waystone_limit": "The maximum number of waystones a player can have. (0 for unlimited)",
+  "config.sswaystones.physical_icon_display": "Changes the Eye of Ender above each waystone to the icon it has."
 }
