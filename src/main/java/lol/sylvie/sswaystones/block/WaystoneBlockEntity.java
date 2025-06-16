@@ -87,6 +87,9 @@ public class WaystoneBlockEntity extends BlockEntity {
                     pos.getX(), pos.getY(), pos.getZ(), 8, 0.1d, 0.1d, 0.1d, 0.1d);
         }
 
+        if (waystoneEntity.nameDisplay == null)
+            return;
+
         // Bob up and down
         double y = (Math.sin((double) System.currentTimeMillis() / 1000) / 32) + 1.55d;
         waystoneEntity.nameDisplay.setOffset(new Vec3d(0, y, 0));

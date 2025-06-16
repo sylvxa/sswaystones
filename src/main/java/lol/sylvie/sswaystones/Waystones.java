@@ -12,9 +12,7 @@ import lol.sylvie.sswaystones.config.Configuration;
 import lol.sylvie.sswaystones.item.ModItems;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +22,7 @@ public class Waystones implements ModInitializer {
     public static Logger LOGGER = LoggerFactory.getLogger("Server-Side Waystones");
     public static Configuration configuration;
 
-    protected static HashMap<UUID, Long> combatTimestamps = new HashMap<>();
+    public static HashMap<UUID, Long> combatTimestamps = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -39,17 +37,6 @@ public class Waystones implements ModInitializer {
 
         CommandRegistrationCallback.EVENT
                 .register((dispatcher, registryAccess, environment) -> WaystonesCommand.register(dispatcher));
-
-        // Combat cooldown
-        AttackEntityCallback.EVENT.register((playerEntity, world, hand, entity, entityHitResult) -> {
-            if (entity instanceof ServerPlayerEntity otherPlayer) {
-                long timestamp = System.currentTimeMillis();
-                combatTimestamps.put(playerEntity.getUuid(), timestamp);
-                combatTimestamps.put(otherPlayer.getUuid(), timestamp);
-            }
-
-            return ActionResult.PASS;
-        });
     }
 
     public static Identifier id(String name) {

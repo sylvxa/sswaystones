@@ -63,6 +63,10 @@ public class Configuration {
         @Description(translation = "config.sswaystones.combat_cooldown")
         public int combatCooldown = 0;
 
+        @SerializedName("pve_combat")
+        @Description(translation = "config.sswaystones.pve_combat")
+        public boolean pveCombat = false;
+
         @SerializedName("waystone_limit")
         @Description(translation = "config.sswaystones.waystone_limit")
         public int waystoneLimit = 0;
