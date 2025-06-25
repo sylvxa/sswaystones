@@ -4,10 +4,18 @@
 */
 package lol.sylvie.sswaystones.gui;
 
+import com.mojang.authlib.GameProfile;
 import eu.pb4.sgui.api.ClickType;
+import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.*;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import lol.sylvie.sswaystones.enums.Visibility;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -212,6 +220,7 @@ public class JavaViewerGui extends SimpleGui {
         }
     }
 
+    //TODO: Add Paging
     protected static class AccessSettingsGui extends SimpleGui {
         private final WaystoneRecord waystone;
 
@@ -241,13 +250,31 @@ public class JavaViewerGui extends SimpleGui {
             // Global
             if (Permissions.check(player, "sswaystones.create.global", true)) {
                 GuiElementBuilder globalToggle = new GuiElementBuilder(Items.PLAYER_HEAD)
-                        .setSkullOwner(IconConstants.GLOBE).setName(Text.translatable("gui.sswaystones.toggle_global")
-                                .formatted(accessSettings.isGlobal() ? Formatting.GREEN : Formatting.RED));
+                        .setSkullOwner(IconConstants.GLOBE)
+                        .setName(Text.translatable(accessSettings.getVisibility().getDisplayName()).formatted(accessSettings.getVisibility().getFormatting()));
 
                 globalToggle.setCallback((index, type, action, gui) -> {
-                    accessSettings.setGlobal(!accessSettings.isGlobal());
+                    accessSettings.setVisibility(
+                            Visibility.values()[
+                                    (accessSettings.getVisibility().ordinal() + 1) % Visibility.values().length
+                                    ]
+                    );
                     this.updateMenu();
                 });
+
+                int trustedPlayerSlot = 16;
+                if (accessSettings.getVisibility() == Visibility.PRIVATE) {
+                    GuiElementBuilder trustedPlayers = new GuiElementBuilder(Items.WRITABLE_BOOK)
+                            .setName(Text.translatable("gui.sswaystones.trusted_players").formatted(Formatting.GRAY));
+
+                    trustedPlayers.setCallback((index, type, action, gui) -> {
+                        TrustedPlayersGui trustedPlayerGui = new TrustedPlayersGui(waystone, player);
+                        trustedPlayerGui.open();
+                    });
+
+                    this.setSlot(trustedPlayerSlot, trustedPlayers);
+                }
+
                 this.setSlot(slot, globalToggle);
                 slot += 1;
             }
@@ -301,6 +328,203 @@ public class JavaViewerGui extends SimpleGui {
         public void onClose() {
             super.onClose();
             ViewerUtil.openJavaGui(player, waystone);
+        }
+    }
+
+    public static class AddTrustedPlayerGui extends SimpleGui {
+        private final WaystoneRecord waystone;
+        private final ArrayList<ServerPlayerEntity> onlinePlayers = new ArrayList<>(this.getPlayer().server.getPlayerManager().getPlayerList());
+        private int pageIndex = 0;
+
+        public AddTrustedPlayerGui(WaystoneRecord waystone, ServerPlayerEntity player) {
+            super(ScreenHandlerType.GENERIC_9X6, player, false);
+            this.waystone = waystone;
+
+            this.setTitle(Text.translatable("gui.sswaystones.add_trusted_player"));
+            updateMenu();
+        }
+
+
+        public void updateMenu() {
+            int totalPlayers = getPlayer().server.getPlayerManager().getPlayerList().size();
+            int playersPerPage = 45;
+            int maxPages = Math.max((int) Math.ceil((double) totalPlayers / playersPerPage), 1);
+            int offset = pageIndex * playersPerPage;
+            this.setTitle(Text.translatable("gui.sswaystones.add_trusted_player").append(String.format(" [%d/%d]", pageIndex + 1, maxPages)));
+
+            GuiElementBuilder previousPage = new GuiElementBuilder(Items.PLAYER_HEAD)
+                    .setSkullOwner(IconConstants.ARROW_LEFT)
+                    .setName(Text.translatable("gui.sswaystones.page_previous"))
+                    .setCallback((index2, type2, action2, gui2) -> {
+                        pageIndex--;
+                        if (pageIndex < 0) {
+                            pageIndex = (int) Math.ceil((double) onlinePlayers.size() / 45) - 1;
+                        }
+                        this.updateMenu();
+                    });
+
+            GuiElementBuilder nextPage = new GuiElementBuilder(Items.PLAYER_HEAD)
+                    .setSkullOwner(IconConstants.ARROW_RIGHT)
+                    .setName(Text.translatable("gui.sswaystones.page_next"))
+                    .setCallback((index2, type2, action2, gui2) -> {
+                        pageIndex++;
+                        if (pageIndex >= Math.ceil((double) onlinePlayers.size() / 45)) {
+                            pageIndex = 0;
+                        }
+                        this.updateMenu();
+                    });
+
+            GuiElementBuilder cancel = new GuiElementBuilder(Items.PLAYER_HEAD)
+                    .setSkullOwner(IconConstants.CANCEL)
+                    .setName(Text.translatable("gui.sswaystones.cancel").formatted(Formatting.RED))
+                    .setCallback((index2, type2, action2, gui2) -> {
+                        this.close();
+                        new TrustedPlayersGui(waystone, this.getPlayer()).open();
+                    });
+
+            for (int i = 0; i < 54; i++) {
+                if (i > 45) {
+                    this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE).setName(Text.literal("")));
+                }
+                if (i == 45) {
+                    this.setSlot(i, previousPage);
+                }
+                if (i == 47) {
+                    this.setSlot(i, nextPage);
+                }
+                if(i == 49){
+                    this.setSlot(i, cancel);
+                }
+            }
+
+            for (int i = offset; i < Math.min(offset + playersPerPage, onlinePlayers.size()); i++) {
+                ServerPlayerEntity player = onlinePlayers.get(i);
+                GuiElementBuilder playerItemBuilder = new GuiElementBuilder(Items.PLAYER_HEAD)
+                        .setSkullOwner(player.getGameProfile(), this.getPlayer().server)
+                        .setName(Text.literal("Add " + player.getName().getString()).formatted(Formatting.GREEN));
+
+                playerItemBuilder.setCallback((index2, type2, action2, gui2) -> {
+                    waystone.getAccessSettings().addTrustedPlayer(player.getUuid());
+                    new TrustedPlayersGui(waystone, this.getPlayer()).open();
+                });
+
+                this.setSlot(i - offset, playerItemBuilder);
+            }
+        }
+    }
+
+    public static class AddTrustedOfflinePlayerGui extends AnvilInputGui {
+        private final WaystoneRecord waystone;
+
+        public AddTrustedOfflinePlayerGui(WaystoneRecord waystone, ServerPlayerEntity player) {
+            super(player, false);
+            this.waystone = waystone;
+
+            this.setSlot(1, new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.CANCEL)
+                    .setName(Text.translatable("gui.back")).setCallback((index, type, action, gui) ->  new TrustedPlayersGui(waystone, player).open()));
+
+            this.setSlot(2, new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.CHECKMARK)
+                    .setName(Text.translatable("gui.done")).setCallback((index, type, action, gui) -> {
+                        String input = this.getInput();
+                        Optional<GameProfile> profileOpt = player.server.getUserCache().findByName(input);
+                        profileOpt.ifPresent(profile -> waystone.getAccessSettings().addTrustedPlayer(profile.getId()));
+
+                        this.close();
+                        new TrustedPlayersGui(waystone, player).open();
+                    }));
+
+            this.setTitle(Text.translatable("gui.sswaystones.add_trusted_offline_player"));
+        }
+    }
+
+    public static class TrustedPlayersGui extends SimpleGui {
+        private final WaystoneRecord waystone;
+        private int pageIndex = 0;
+
+        public TrustedPlayersGui(WaystoneRecord waystone, ServerPlayerEntity player) {
+            super(ScreenHandlerType.GENERIC_9X6, player, false);
+            this.waystone = waystone;
+            this.updateMenu();
+        }
+
+        private void updateMenu() {
+            for(int i = 0; i < 54; i++) {
+                this.clearSlot(i);
+            }
+
+            int totalTrustedPlayers = waystone.getAccessSettings().getTrustedPlayers().size();
+            int playersPerPage = 45;
+            int maxPages = Math.max((int) Math.ceil((double) totalTrustedPlayers / playersPerPage), 1);
+            int offset = pageIndex * playersPerPage;
+            this.setTitle(Text.translatable("gui.sswaystones.trusted_players").append(String.format(" [%d/%d]", pageIndex + 1, maxPages)));
+
+            for (int i = 0; i < 54; i++) {
+                if (i > 44) {
+                    this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE).setName(Text.literal("")));
+                }
+                if (i == 45) {
+                    this.setSlot(i, new GuiElementBuilder(Items.PLAYER_HEAD)
+                            .setSkullOwner(IconConstants.ARROW_LEFT)
+                            .setName(Text.translatable("gui.sswaystones.page_previous"))
+                            .setCallback((index, type, action, gui) -> {
+                                if (totalTrustedPlayers > 0) {
+                                    pageIndex--;
+                                    if (pageIndex < 0) {
+                                        pageIndex = maxPages - 1;
+                                    }
+                                    this.updateMenu();
+                                }
+                            }));
+                }
+                if (i == 47) {
+                    this.setSlot(i, new GuiElementBuilder(Items.PLAYER_HEAD)
+                            .setSkullOwner(IconConstants.ARROW_RIGHT)
+                            .setName(Text.translatable("gui.sswaystones.page_next"))
+                            .setCallback((index, type, action, gui) -> {
+                                pageIndex++;
+                                if (pageIndex >= maxPages) {
+                                    pageIndex = 0;
+                                }
+                                this.updateMenu();
+                            }));
+                }
+            }
+
+            List<UUID> trustedPlayers = waystone.getAccessSettings().getTrustedPlayers();
+            for (int i = offset; i < Math.min(offset + playersPerPage, trustedPlayers.size()); i++) {
+                UUID playerUuid = trustedPlayers.get(i);
+                GameProfile profile = this.getPlayer().server.getUserCache().getByUuid(playerUuid).orElse(null);
+                String playerName = profile != null ? profile.getName() : playerUuid.toString();
+                GuiElementBuilder playerItemBuilder = new GuiElementBuilder(Items.PLAYER_HEAD)
+                        .setSkullOwner(profile != null ? profile : new GameProfile(playerUuid, null), this.getPlayer().server)
+                        .setName(Text.literal("Remove " + playerName).formatted(Formatting.RED));
+
+                playerItemBuilder.setCallback((index, type, action, gui) -> {
+                    waystone.getAccessSettings().removeTrustedPlayer(playerUuid);
+                    this.updateMenu();
+                });
+                this.setSlot(i - offset, playerItemBuilder);
+            }
+
+            GuiElementBuilder addTrustedPlayerItem = new GuiElementBuilder(Items.PLAYER_HEAD)
+                    .setSkullOwner(IconConstants.PLUS)
+                    .setName(Text.translatable("gui.sswaystones.add_trusted_player").formatted(Formatting.GREEN));
+
+            addTrustedPlayerItem.setCallback((index, type, action, gui) -> {
+                AddTrustedPlayerGui addTrustedPlayerGui = new AddTrustedPlayerGui(waystone, this.getPlayer());
+                addTrustedPlayerGui.open();
+            });
+
+            GuiElementBuilder addTrustedOfflinePlayer = new GuiElementBuilder(Items.PAPER)
+                    .setItemName(Text.translatable("gui.sswaystones.add_trusted_offline_player").formatted(Formatting.GREEN));
+
+            addTrustedOfflinePlayer.setCallback((index, type, action, gui) -> {
+                AddTrustedOfflinePlayerGui addTrustedOfflinePlayerGui = new AddTrustedOfflinePlayerGui(waystone, this.getPlayer());
+                addTrustedOfflinePlayerGui.open();
+            });
+
+            this.setSlot(50, addTrustedOfflinePlayer);
+            this.setSlot(49, addTrustedPlayerItem);
         }
     }
 }

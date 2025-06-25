@@ -8,6 +8,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.*;
 import lol.sylvie.sswaystones.Waystones;
+import lol.sylvie.sswaystones.enums.Visibility;
 import lol.sylvie.sswaystones.util.NameGenerator;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.item.Items;
@@ -102,7 +103,7 @@ public class WaystoneStorage extends PersistentState {
 
         WaystoneRecord record = new WaystoneRecord(player.getUuid(), player.getName().getString(),
                 NameGenerator.generateName(), pos, world.getRegistryKey(),
-                new WaystoneRecord.AccessSettings(false, false, ""), Items.PLAYER_HEAD);
+                new WaystoneRecord.AccessSettings(Visibility.DISCOVERABLE, false, "", new ArrayList<>()), Items.PLAYER_HEAD);
         String hash = record.getHash();
         this.waystones.put(hash, record);
 

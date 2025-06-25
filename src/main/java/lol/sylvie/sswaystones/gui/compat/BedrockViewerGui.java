@@ -6,6 +6,8 @@ package lol.sylvie.sswaystones.gui.compat;
 
 import java.util.List;
 import java.util.function.Consumer;
+
+import lol.sylvie.sswaystones.enums.Visibility;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.NameGenerator;
@@ -81,7 +83,7 @@ public class BedrockViewerGui {
 
         boolean globalAvailable = Permissions.check(player, "sswaystones.create.global", true);
         if (globalAvailable) {
-            builder.toggle("Global", accessSettings.isGlobal());
+            builder.toggle("Visibility", accessSettings.getVisibility() == Visibility.PUBLIC);
         }
 
         boolean teamAvailable = player.getScoreboardTeam() != null
@@ -101,9 +103,11 @@ public class BedrockViewerGui {
                 return;
 
             int index = 1;
+
+            //TODO Take a look at this visibility stuff again for bedrock
             if (globalAvailable) {
                 boolean global = response.asToggle(index);
-                accessSettings.setGlobal(global);
+                accessSettings.setVisibility(Visibility.PUBLIC);
                 index += 1;
             }
 
