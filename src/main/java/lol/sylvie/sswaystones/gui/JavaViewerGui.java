@@ -506,6 +506,14 @@ public class JavaViewerGui extends SimpleGui {
                 this.setSlot(i - offset, playerItemBuilder);
             }
 
+            GuiElementBuilder cancel = new GuiElementBuilder(Items.PLAYER_HEAD)
+                    .setSkullOwner(IconConstants.CANCEL)
+                    .setName(Text.translatable("gui.sswaystones.back").formatted(Formatting.RED))
+                    .setCallback((index, type, action, gui) -> {
+                        this.close();
+                        ViewerUtil.openJavaGui(this.getPlayer(), waystone);
+                    });
+
             GuiElementBuilder addTrustedPlayerItem = new GuiElementBuilder(Items.PLAYER_HEAD)
                     .setSkullOwner(IconConstants.PLUS)
                     .setName(Text.translatable("gui.sswaystones.add_trusted_player").formatted(Formatting.GREEN));
@@ -515,7 +523,7 @@ public class JavaViewerGui extends SimpleGui {
                 addTrustedPlayerGui.open();
             });
 
-            GuiElementBuilder addTrustedOfflinePlayer = new GuiElementBuilder(Items.PAPER)
+            GuiElementBuilder addTrustedOfflinePlayer = new GuiElementBuilder(Items.NAME_TAG)
                     .setItemName(Text.translatable("gui.sswaystones.add_trusted_offline_player").formatted(Formatting.GREEN));
 
             addTrustedOfflinePlayer.setCallback((index, type, action, gui) -> {
@@ -525,6 +533,7 @@ public class JavaViewerGui extends SimpleGui {
 
             this.setSlot(50, addTrustedOfflinePlayer);
             this.setSlot(49, addTrustedPlayerItem);
+            this.setSlot(53, cancel);
         }
     }
 }

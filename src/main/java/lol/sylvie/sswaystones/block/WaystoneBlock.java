@@ -6,6 +6,7 @@ package lol.sylvie.sswaystones.block;
 
 import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
+import lol.sylvie.sswaystones.enums.Visibility;
 import lol.sylvie.sswaystones.gui.ViewerUtil;
 import lol.sylvie.sswaystones.storage.PlayerData;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
@@ -139,7 +140,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
                 record = newWaystone;
             }
 
-            if (!playerData.discoveredWaystones.contains(waystoneHash)) {
+            if (!playerData.discoveredWaystones.contains(waystoneHash) && record.getAccessSettings().getVisibility() != Visibility.PRIVATE) {
                 playerData.discoveredWaystones.add(waystoneHash);
                 player.sendMessage(Text
                         .translatable("message.sswaystones.discovered",
