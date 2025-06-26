@@ -423,17 +423,55 @@ public class JavaViewerGui extends SimpleGui {
             this.setSlot(1, new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.CANCEL)
                     .setName(Text.translatable("gui.back")).setCallback((index, type, action, gui) ->  new TrustedPlayersGui(waystone, player).open()));
 
-            this.setSlot(2, new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.CHECKMARK)
-                    .setName(Text.translatable("gui.done")).setCallback((index, type, action, gui) -> {
-                        String input = this.getInput();
-                        Optional<GameProfile> profileOpt = player.server.getUserCache().findByName(input);
-                        profileOpt.ifPresent(profile -> waystone.getAccessSettings().addTrustedPlayer(profile.getId()));
-
-                        this.close();
-                        new TrustedPlayersGui(waystone, player).open();
-                    }));
+            updateDoneButton();
 
             this.setTitle(Text.translatable("gui.sswaystones.add_trusted_offline_player"));
+        }
+
+        @Override
+        public void onInput(String input) {
+            super.onInput(input);
+            updateDoneButton();
+        }
+
+        private void updateDoneButton() {
+            String input = this.getInput();
+
+            GuiElementBuilder button = new GuiElementBuilder(Items.PLAYER_HEAD)
+                    .setName(Text.translatable("gui.sswaystones.done").formatted(Formatting.GREEN))
+                    .setSkullOwner(IconConstants.CHECKMARK);
+
+            if (!input.isEmpty() && input.length() > 2) {
+                try {
+                    Optional<GameProfile> cachedProfile = player.server.getUserCache().findByName(input);
+                    if (cachedProfile.isPresent()) {
+                        button.setSkullOwner(cachedProfile.get(), player.server);
+                    }
+                } catch (Exception ignored) {}
+            }
+
+            button.setCallback((index, type, action, gui) -> {
+                String playerName = this.getInput();
+                if (playerName.isEmpty()) {
+                    this.close();
+                    new TrustedPlayersGui(waystone, player).open();
+                    return;
+                }
+
+                if (!playerName.isEmpty()) {
+                    try {
+                        Optional<GameProfile> profileOpt = player.server.getUserCache().findByName(playerName);
+                        if (profileOpt.isPresent()) {
+                            waystone.getAccessSettings().addTrustedPlayer(profileOpt.get().getId());
+                        }
+                    } catch (Exception ignored) {}
+                }
+
+                this.close();
+                new TrustedPlayersGui(waystone, player).open();
+            });
+
+            this.setSlot(2, button);
         }
     }
 
