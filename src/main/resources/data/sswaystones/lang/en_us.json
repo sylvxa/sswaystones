@@ -38,7 +38,7 @@
   "gui.sswaystones.visibility.discoverable": "Discoverable",
   "gui.sswaystones.visibility.private": "Private",
   "gui.sswaystones.trusted_players": "Trusted Players",
-  "gui.sswaystones.add_trusted_player": "Add trusted player",
+  "gui.sswaystones.add_trusted_player": "Add player",
   "gui.sswaystones.add_trusted_offline_player": "Add player by name",
   "gui.sswaystones.cancel": "Cancel",
   "gui.sswaystones.back": "Back",
