@@ -434,21 +434,12 @@ public class JavaViewerGui extends SimpleGui {
             updateDoneButton();
         }
 
-        private void updateDoneButton() {
+       private void updateDoneButton() {
             String input = this.getInput();
 
             GuiElementBuilder button = new GuiElementBuilder(Items.PLAYER_HEAD)
                     .setName(Text.translatable("gui.sswaystones.done").formatted(Formatting.GREEN))
                     .setSkullOwner(IconConstants.CHECKMARK);
-
-            if (!input.isEmpty() && input.length() > 2) {
-                try {
-                    Optional<GameProfile> cachedProfile = player.server.getUserCache().findByName(input);
-                    if (cachedProfile.isPresent()) {
-                        button.setSkullOwner(cachedProfile.get(), player.server);
-                    }
-                } catch (Exception ignored) {}
-            }
 
             button.setCallback((index, type, action, gui) -> {
                 String playerName = this.getInput();
@@ -458,20 +449,43 @@ public class JavaViewerGui extends SimpleGui {
                     return;
                 }
 
-                if (!playerName.isEmpty()) {
+                new Thread(() -> {
+                    if (!playerName.isEmpty()) {
+                        try {
+                            Optional<GameProfile> profileOpt = player.server.getUserCache().findByName(playerName);
+                            if (profileOpt.isPresent()) {
+                                player.server.execute(() -> waystone.getAccessSettings().addTrustedPlayer(profileOpt.get().getId()));
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                    player.server.execute(() -> {
+                        this.close();
+                        new TrustedPlayersGui(waystone, player).open();
+                    });
+                }).start();
+            });
+            this.setSlot(2, button);
+
+            if (!input.isEmpty() && input.length() > 2) {
+                new Thread(() -> {
                     try {
-                        Optional<GameProfile> profileOpt = player.server.getUserCache().findByName(playerName);
-                        if (profileOpt.isPresent()) {
-                            waystone.getAccessSettings().addTrustedPlayer(profileOpt.get().getId());
+                        Optional<GameProfile> cachedProfile = player.server.getUserCache().findByName(input);
+                        if (cachedProfile.isPresent()) {
+                            player.server.execute(() -> {
+                                GuiElementBuilder updatedButton = new GuiElementBuilder(Items.PLAYER_HEAD)
+                                        .setName(Text.translatable("gui.sswaystones.done").formatted(Formatting.GREEN))
+                                        .setSkullOwner(cachedProfile.get(), player.server)
+                                        .setCallback((index, type, action, gui) -> {
+                                            waystone.getAccessSettings().addTrustedPlayer(cachedProfile.get().getId());
+                                            this.close();
+                                            new TrustedPlayersGui(waystone, player).open();
+                                        });
+                                this.setSlot(2, updatedButton);
+                            });
                         }
                     } catch (Exception ignored) {}
-                }
-
-                this.close();
-                new TrustedPlayersGui(waystone, player).open();
-            });
-
-            this.setSlot(2, button);
+                }).start();
+            }
         }
     }
 
