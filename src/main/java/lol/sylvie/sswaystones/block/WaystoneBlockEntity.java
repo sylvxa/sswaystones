@@ -50,6 +50,11 @@ public class WaystoneBlockEntity extends BlockEntity {
         boolean waystoneOwned = record != null;
         boolean shouldCreateName = record != null && waystoneEntity.nameDisplay == null;
 
+        //this works (sorta) || PLAN Z
+        if(record == null){
+            return;
+        }
+
         // Create the display itself
         if (waystoneEntity.eyeDisplay == null || shouldCreateName) {
             waystoneEntity.createHologramDisplay(world);

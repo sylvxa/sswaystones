@@ -86,7 +86,9 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
             return;
         if (!(placer instanceof ServerPlayerEntity player))
             return;
+
         createWaystone(pos, world, player);
+        //world.getServer().save(true, false, true);
     }
 
     public static void onRemoved(World world, BlockPos pos) {
@@ -106,8 +108,10 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient())
+        if (!world.isClient()){
             onRemoved(world, pos);
+            //world.getServer().save(true, false, true);
+        }
         return super.onBreak(world, pos, state, player);
     }
 
