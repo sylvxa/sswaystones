@@ -25,6 +25,8 @@ import lol.sylvie.sswaystones.enums.Visibility;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.scoreboard.Team;
@@ -204,6 +206,15 @@ public class JavaViewerGui extends SimpleGui {
                         Text.translatable("gui.sswaystones.change_icon_instruction").formatted(Formatting.GRAY)));
             }
             this.setSlot(4, waystone.getIconOrHead(player.server));
+
+            this.setSlot(7, new GuiElementBuilder(Items.PLAYER_HEAD)
+                    .setSkullOwner(IconConstants.CANCEL)
+                    .setName(Text.translatable("gui.sswaystones.reset").formatted(Formatting.RED))
+                    .setCallback((index, type, action, gui) -> {
+                        waystone.setIcon(createPlayerHead(player));
+                        this.close();
+                        ViewerUtil.openJavaGui(player, waystone);
+                    }));
         }
 
         @Override
@@ -775,5 +786,11 @@ public class JavaViewerGui extends SimpleGui {
             super.onClose();
             new AccessSettingsGui(waystone, player).open();
         }
+    }
+
+    private static ItemStack createPlayerHead(ServerPlayerEntity player) {
+        ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
+        skull.set(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()));
+        return skull;
     }
 }

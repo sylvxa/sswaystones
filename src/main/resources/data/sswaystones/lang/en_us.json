@@ -43,6 +43,7 @@
   "gui.sswaystones.cancel": "Cancel",
   "gui.sswaystones.back": "Back",
   "gui.sswaystones.done": "Done",
+  "gui.sswaystones.reset": "Reset",
   "command.sswaystones.waystone_not_found": "That waystone does not exist!",
   "command.sswaystones.waystone_removed_successfully": "Waystone was removed!",
   "command.sswaystones.list_header": "§b§eList of Waystones:",

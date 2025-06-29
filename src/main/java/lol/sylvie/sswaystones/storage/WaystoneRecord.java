@@ -72,7 +72,7 @@ public final class WaystoneRecord {
                             .forGetter(WaystoneRecord::getIcon))
                 .apply(instance, WaystoneRecord::new));
 
-    
+
     // Optional fields share the same instance of a default value, so we have to use
     // this weird workaround
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
