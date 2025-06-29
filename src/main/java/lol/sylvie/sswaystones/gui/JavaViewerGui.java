@@ -405,6 +405,7 @@ public class JavaViewerGui extends SimpleGui {
                 }
             }
 
+            onlinePlayers.remove(player);
             for (int i = offset; i < Math.min(offset + playersPerPage, onlinePlayers.size()); i++) {
                 ServerPlayerEntity player = onlinePlayers.get(i);
                 GuiElementBuilder playerItemBuilder = new GuiElementBuilder(Items.PLAYER_HEAD)
