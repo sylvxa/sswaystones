@@ -10,10 +10,16 @@ import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.*;
 
+import java.io.BufferedReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import lol.sylvie.sswaystones.enums.Visibility;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
@@ -28,6 +34,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
+
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 
 public class JavaViewerGui extends SimpleGui {
     private static final int ITEMS_PER_PAGE = 9 * 5;
@@ -415,6 +423,9 @@ public class JavaViewerGui extends SimpleGui {
 
     public static class AddTrustedOfflinePlayerGui extends AnvilInputGui {
         private final WaystoneRecord waystone;
+        private ScheduledFuture<?> scheduledLookup = null;
+        private final ScheduledExecutorService scheduler = newSingleThreadScheduledExecutor();
+        private String lastLookupQuery = null;
 
         public AddTrustedOfflinePlayerGui(WaystoneRecord waystone, ServerPlayerEntity player) {
             super(player, false);
@@ -449,43 +460,102 @@ public class JavaViewerGui extends SimpleGui {
                     return;
                 }
 
-                new Thread(() -> {
-                    if (!playerName.isEmpty()) {
-                        try {
-                            Optional<GameProfile> profileOpt = player.server.getUserCache().findByName(playerName);
-                            if (profileOpt.isPresent()) {
-                                player.server.execute(() -> waystone.getAccessSettings().addTrustedPlayer(profileOpt.get().getId()));
-                            }
-                        } catch (Exception ignored) {}
+                lookupPlayerProfile(playerName, (profileOpt) -> {
+                    if (profileOpt.isPresent()) {
+                        waystone.getAccessSettings().addTrustedPlayer(profileOpt.get().getId());
                     }
-                    player.server.execute(() -> {
-                        this.close();
-                        new TrustedPlayersGui(waystone, player).open();
-                    });
-                }).start();
+                    this.close();
+                    new TrustedPlayersGui(waystone, player).open();
+                });
             });
             this.setSlot(2, button);
 
-            if (!input.isEmpty() && input.length() > 2) {
-                new Thread(() -> {
-                    try {
-                        Optional<GameProfile> cachedProfile = player.server.getUserCache().findByName(input);
-                        if (cachedProfile.isPresent()) {
-                            player.server.execute(() -> {
-                                GuiElementBuilder updatedButton = new GuiElementBuilder(Items.PLAYER_HEAD)
-                                        .setName(Text.translatable("gui.sswaystones.done").formatted(Formatting.GREEN))
-                                        .setSkullOwner(cachedProfile.get(), player.server)
-                                        .setCallback((index, type, action, gui) -> {
-                                            waystone.getAccessSettings().addTrustedPlayer(cachedProfile.get().getId());
-                                            this.close();
-                                            new TrustedPlayersGui(waystone, player).open();
-                                        });
-                                this.setSlot(2, updatedButton);
-                            });
-                        }
-                    } catch (Exception ignored) {}
-                }).start();
+           //TODO: look into this, for some reason for CookieDoughnut2 it doens't work and returns null or smthing
+            if (!input.isEmpty()) {
+                lookupPlayerProfile(input, (cachedProfile) -> {
+                    if (cachedProfile.isPresent()) {
+                        GuiElementBuilder updatedButton = new GuiElementBuilder(Items.PLAYER_HEAD)
+                                .setName(Text.translatable("gui.sswaystones.done").formatted(Formatting.GREEN))
+                                .setSkullOwner(cachedProfile.get(), player.server)
+                                .setCallback((index, type, action, gui) -> {
+                                    waystone.getAccessSettings().addTrustedPlayer(cachedProfile.get().getId());
+                                    this.close();
+                                    new TrustedPlayersGui(waystone, player).open();
+                                });
+                        this.setSlot(2, updatedButton);
+                    }
+                });
             }
+        }
+
+        private void lookupPlayerProfile(String playerName, java.util.function.Consumer<Optional<GameProfile>> callback) {
+            if (playerName == null || playerName.isEmpty()) {
+                player.server.execute(() -> callback.accept(Optional.empty()));
+                return;
+            }
+            if (scheduledLookup != null && !scheduledLookup.isDone()) {
+                scheduledLookup.cancel(false);
+            }
+
+            final String currentQuery = playerName;
+            if (currentQuery.equals(lastLookupQuery)) {
+                return;
+            }
+
+            scheduledLookup = scheduler.schedule(() -> {
+                lastLookupQuery = currentQuery;
+
+                Optional<GameProfile> profile = Optional.empty();
+                try {
+                    String apiUrl = "https://api.mojang.com/users/profiles/minecraft/" + currentQuery;
+                    URL url = new URL(apiUrl);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+
+                    if (connection.getResponseCode() == 200) {
+                        BufferedReader reader = new java.io.BufferedReader(
+                                new java.io.InputStreamReader(connection.getInputStream()));
+                        StringBuilder response = new StringBuilder();
+                        String line;
+
+                        while ((line = reader.readLine()) != null) {
+                            response.append(line);
+                        }
+                        reader.close();
+
+                        String json = response.toString();
+                        String id = extractJsonValue(json, "id");
+                        String name = extractJsonValue(json, "name");
+
+                        if (id != null && name != null) {
+                            UUID uuid = convertDashlessUUID(id);
+                            profile = Optional.of(new GameProfile(uuid, name));
+                        }
+                    }
+                    connection.disconnect();
+                } catch (Exception e) {}
+
+                final Optional<GameProfile> finalProfile = profile;
+                player.server.execute(() -> callback.accept(finalProfile));
+            }, 150, TimeUnit.MILLISECONDS);
+        }
+
+        private UUID convertDashlessUUID(String id) {
+            return UUID.fromString(id.replaceFirst(
+                    "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)",
+                    "$1-$2-$3-$4-$5"
+            ));
+        }
+
+        private String extractJsonValue(String json, String key) {
+            String keyPattern = "\"" + key + "\"\\s*:\\s*\"([^\"]+)\"";
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(keyPattern);
+            java.util.regex.Matcher matcher = pattern.matcher(json);
+
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+            return null;
         }
     }
 
@@ -546,16 +616,44 @@ public class JavaViewerGui extends SimpleGui {
             for (int i = offset; i < Math.min(offset + playersPerPage, trustedPlayers.size()); i++) {
                 UUID playerUuid = trustedPlayers.get(i);
                 GameProfile profile = this.getPlayer().server.getUserCache().getByUuid(playerUuid).orElse(null);
-                String playerName = profile != null ? profile.getName() : playerUuid.toString();
-                GuiElementBuilder playerItemBuilder = new GuiElementBuilder(Items.PLAYER_HEAD)
-                        .setSkullOwner(profile != null ? profile : new GameProfile(playerUuid, null), this.getPlayer().server)
-                        .setName(Text.literal("Remove " + playerName).formatted(Formatting.RED));
 
-                playerItemBuilder.setCallback((index, type, action, gui) -> {
-                    waystone.getAccessSettings().removeTrustedPlayer(playerUuid);
-                    this.updateMenu();
-                });
-                this.setSlot(i - offset, playerItemBuilder);
+                if(profile == null) {
+                    int finalI = i;
+                    GameProfile tempProfile = new GameProfile(playerUuid, "Loading...");
+                    GuiElementBuilder loadingItem = new GuiElementBuilder(Items.PLAYER_HEAD)
+                            .setName(Text.literal("Loading player data...").formatted(Formatting.GRAY));
+                    this.setSlot(finalI - offset, loadingItem);
+
+                    lookupPlayerProfile(playerUuid.toString(), (optionalProfile) -> {
+                        if (optionalProfile.isPresent()) {
+                            GameProfile newProfile = optionalProfile.get();
+                            String playerName = newProfile.getName();
+                            GuiElementBuilder playerItemBuilder = new GuiElementBuilder(Items.PLAYER_HEAD)
+                                    .setSkullOwner(newProfile, this.getPlayer().server)
+                                    .setName(Text.literal("Remove " + playerName).formatted(Formatting.RED));
+
+                            playerItemBuilder.setCallback((index, type, action, gui) -> {
+                                waystone.getAccessSettings().removeTrustedPlayer(playerUuid);
+                                this.updateMenu();
+                            });
+                            // Check if this slot is still valid before updating
+                            if (isOpen() && finalI - offset < 45) {
+                                this.setSlot(finalI - offset, playerItemBuilder);
+                            }
+                        }
+                    });
+                }else{
+                    String playerName = profile != null ? profile.getName() : playerUuid.toString();
+                    GuiElementBuilder playerItemBuilder = new GuiElementBuilder(Items.PLAYER_HEAD)
+                            .setSkullOwner(profile != null ? profile : new GameProfile(playerUuid, null), this.getPlayer().server)
+                            .setName(Text.literal("Remove " + playerName).formatted(Formatting.RED));
+
+                    playerItemBuilder.setCallback((index, type, action, gui) -> {
+                        waystone.getAccessSettings().removeTrustedPlayer(playerUuid);
+                        this.updateMenu();
+                    });
+                    this.setSlot(i - offset, playerItemBuilder);
+                }
             }
 
             GuiElementBuilder cancel = new GuiElementBuilder(Items.PLAYER_HEAD)
@@ -586,6 +684,77 @@ public class JavaViewerGui extends SimpleGui {
             this.setSlot(50, addTrustedOfflinePlayer);
             this.setSlot(49, addTrustedPlayerItem);
             this.setSlot(53, cancel);
+        }
+
+       private void lookupPlayerProfile(String uuidOrName, java.util.function.Consumer<Optional<GameProfile>> callback) {
+           final ScheduledExecutorService scheduler = newSingleThreadScheduledExecutor();
+
+            if (uuidOrName == null || uuidOrName.isEmpty()) {
+                player.server.execute(() -> callback.accept(Optional.empty()));
+                return;
+            }
+
+           scheduler.schedule(() -> {
+                Optional<GameProfile> profile = Optional.empty();
+                try {
+                    String apiUrl;
+                    boolean isUUID = uuidOrName.length() > 16;
+
+                    if (isUUID) {
+                        String uuidWithoutDashes = uuidOrName.replace("-", "");
+                        apiUrl = "https://sessionserver.mojang.com/session/minecraft/profile/" + uuidWithoutDashes;
+                    } else {
+                        apiUrl = "https://api.mojang.com/users/profiles/minecraft/" + uuidOrName;
+                    }
+
+                    URL url = new URL(apiUrl);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+
+                    if (connection.getResponseCode() == 200) {
+                        BufferedReader reader = new java.io.BufferedReader(
+                                new java.io.InputStreamReader(connection.getInputStream()));
+                        StringBuilder response = new StringBuilder();
+                        String line;
+
+                        while ((line = reader.readLine()) != null) {
+                            response.append(line);
+                        }
+                        reader.close();
+
+                        String json = response.toString();
+                        String id = extractJsonValue(json, "id");
+                        String name = extractJsonValue(json, "name");
+
+                        if (id != null && name != null) {
+                            UUID uuid = convertDashlessUUID(id);
+                            profile = Optional.of(new GameProfile(uuid, name));
+                        }
+                    }
+                    connection.disconnect();
+                } catch (Exception e) {}
+
+                final Optional<GameProfile> finalProfile = profile;
+                player.server.execute(() -> callback.accept(finalProfile));
+            }, 0, TimeUnit.MILLISECONDS);
+        }
+
+        private UUID convertDashlessUUID(String id) {
+            return UUID.fromString(id.replaceFirst(
+                    "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)",
+                    "$1-$2-$3-$4-$5"
+            ));
+        }
+
+        private String extractJsonValue(String json, String key) {
+            String keyPattern = "\"" + key + "\"\\s*:\\s*\"([^\"]+)\"";
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(keyPattern);
+            java.util.regex.Matcher matcher = pattern.matcher(json);
+
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+            return null;
         }
     }
 }
