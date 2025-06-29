@@ -214,7 +214,7 @@ public class JavaViewerGui extends SimpleGui {
                 ItemStack stack = player.getInventory().getStack(index);
 
                 if (stack != null && !stack.isOf(Items.AIR)) {
-                    waystone.setIcon(stack.getItem());
+                    waystone.setIcon(stack);
                     this.close();
                 }
             }

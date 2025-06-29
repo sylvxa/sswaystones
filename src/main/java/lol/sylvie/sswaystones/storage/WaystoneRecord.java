@@ -51,7 +51,7 @@ public final class WaystoneRecord {
     private final BlockPos pos; // Must be final as the hash is calculated based on pos and world
     private final RegistryKey<World> world;
     private final AccessSettings accessSettings;
-    private Item icon;
+    private ItemStack icon;
 
     public static final Codec<WaystoneRecord> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Uuids.CODEC.fieldOf("waystone_owner").forGetter(WaystoneRecord::getOwnerUUID),
@@ -61,27 +61,28 @@ public final class WaystoneRecord {
             World.CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
             AccessSettings.CODEC.optionalFieldOf("access_settings")
                     .forGetter((i) -> Optional.of(i.getAccessSettings())),
-            Registries.ITEM.getCodec().optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
+
+                    ItemStack.CODEC.optionalFieldOf("icon", Items.PLAYER_HEAD.getDefaultStack()).forGetter(WaystoneRecord::getIcon))
             .apply(instance, WaystoneRecord::new));
 
     // Optional fields share the same instance of a default value, so we have to use
     // this weird workaround
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world,
-            Optional<AccessSettings> accessSettings, Item icon) {
+                           Optional<AccessSettings> accessSettings, ItemStack icon) {
         this(owner, ownerName, waystoneName, pos, world,
                 accessSettings.orElseGet(() -> new AccessSettings(Visibility.DISCOVERABLE, false, "", new ArrayList<UUID>())), icon);
     }
 
     public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world,
-            AccessSettings accessSettings, Item icon) {
+                          AccessSettings accessSettings, ItemStack icon) {
         this.owner = owner;
         this.ownerName = ownerName;
         this.setWaystoneName(waystoneName); // Limits waystone name
         this.pos = pos;
         this.world = world;
         this.accessSettings = accessSettings;
-        this.icon = icon == null ? Items.PLAYER_HEAD : icon;
+        this.icon = icon == null ? Items.PLAYER_HEAD.getDefaultStack() : icon;
     }
 
     public void handleTeleport(ServerPlayerEntity player) {
@@ -188,8 +189,8 @@ public final class WaystoneRecord {
     }
 
     public ItemStack getIconOrHead(@Nullable MinecraftServer server) {
-        if (icon != null && icon != Items.PLAYER_HEAD)
-            return icon.getDefaultStack();
+        if (icon != null && icon != Items.PLAYER_HEAD.getDefaultStack())
+            return icon;
 
         // The server has to fetch the player's skin
         GameProfile profile = new GameProfile(this.getOwnerUUID(), this.getOwnerName());
@@ -239,11 +240,11 @@ public final class WaystoneRecord {
         return accessSettings;
     }
 
-    public Item getIcon() {
+    public ItemStack getIcon() {
         return icon;
     }
 
-    public void setIcon(Item icon) {
+    public void setIcon(ItemStack icon) {
         this.icon = icon;
     }
 

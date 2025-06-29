@@ -7,11 +7,17 @@ package lol.sylvie.sswaystones.storage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.*;
+
+import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.enums.Visibility;
 import lol.sylvie.sswaystones.util.NameGenerator;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ProfileComponent;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -103,13 +109,19 @@ public class WaystoneStorage extends PersistentState {
 
         WaystoneRecord record = new WaystoneRecord(player.getUuid(), player.getName().getString(),
                 NameGenerator.generateName(), pos, world.getRegistryKey(),
-                new WaystoneRecord.AccessSettings(Visibility.DISCOVERABLE, false, "", new ArrayList<>()), Items.PLAYER_HEAD);
+                new WaystoneRecord.AccessSettings(Visibility.DISCOVERABLE, false, "", new ArrayList<>()), createPlayerHead(player));
         String hash = record.getHash();
         this.waystones.put(hash, record);
 
         getPlayerState(player).discoveredWaystones.add(hash);
 
         return record;
+    }
+
+    private ItemStack createPlayerHead(ServerPlayerEntity player) {
+        ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
+        skull.set(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()));
+        return skull;
     }
 
     // Make all players forget about waystone
