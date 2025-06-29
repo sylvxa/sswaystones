@@ -83,10 +83,13 @@ public class JavaViewerGui extends SimpleGui {
             GuiElementBuilder element = new GuiElementBuilder(record.getIconOrHead(player.server))
                     .setName(record.getWaystoneText().copy().formatted(Formatting.YELLOW));
 
-            if (!record.getAccessSettings().isServerOwned())
+            if (!record.getAccessSettings().isServerOwned()){
                 element.setLore(List.of(Text.of(record.getOwnerName())));
-            else
+            }
+            else{
                 element.glow(true);
+                element.setLore(List.of());
+            }
 
             element.setCallback((index, type, action, gui) -> {
                 record.handleTeleport(player);
@@ -643,7 +646,6 @@ public class JavaViewerGui extends SimpleGui {
 
                 if(profile == null) {
                     int finalI = i;
-                    GameProfile tempProfile = new GameProfile(playerUuid, "Loading...");
                     GuiElementBuilder loadingItem = new GuiElementBuilder(Items.PLAYER_HEAD)
                             .setName(Text.literal("Loading player data...").formatted(Formatting.GRAY));
                     this.setSlot(finalI - offset, loadingItem);
