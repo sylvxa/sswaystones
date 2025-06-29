@@ -7,6 +7,7 @@ package lol.sylvie.sswaystones.storage;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTextures;
 import com.mojang.authlib.yggdrasil.ProfileResult;
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -61,10 +62,17 @@ public final class WaystoneRecord {
             World.CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
             AccessSettings.CODEC.optionalFieldOf("access_settings")
                     .forGetter((i) -> Optional.of(i.getAccessSettings())),
+            Codec.either(Registries.ITEM.getCodec(), ItemStack.CODEC)
+                            .xmap(either -> either.map(
+                                            item -> new ItemStack(item),
+                                            itemStack -> itemStack
+                                    ),
+                                    stack -> Either.right(stack))
+                            .optionalFieldOf("icon", Items.PLAYER_HEAD.getDefaultStack())
+                            .forGetter(WaystoneRecord::getIcon))
+                .apply(instance, WaystoneRecord::new));
 
-                    ItemStack.CODEC.optionalFieldOf("icon", Items.PLAYER_HEAD.getDefaultStack()).forGetter(WaystoneRecord::getIcon))
-            .apply(instance, WaystoneRecord::new));
-
+    
     // Optional fields share the same instance of a default value, so we have to use
     // this weird workaround
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
