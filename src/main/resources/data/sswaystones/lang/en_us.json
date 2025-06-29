@@ -42,6 +42,7 @@
   "gui.sswaystones.add_trusted_offline_player": "Add player by name",
   "gui.sswaystones.cancel": "Cancel",
   "gui.sswaystones.back": "Back",
+  "gui.sswaystones.done": "Done",
   "command.sswaystones.waystone_not_found": "That waystone does not exist!",
   "command.sswaystones.waystone_removed_successfully": "Waystone was removed!",
   "command.sswaystones.list_header": "§b§eList of Waystones:",
