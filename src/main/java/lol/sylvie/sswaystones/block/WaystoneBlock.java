@@ -144,7 +144,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
                 record = newWaystone;
             }
 
-            if (!playerData.discoveredWaystones.contains(waystoneHash) && record.getAccessSettings().getVisibility() != Visibility.PRIVATE) {
+            if (!playerData.discoveredWaystones.contains(waystoneHash) && record.getAccessSettings().getVisibility() == Visibility.DISCOVERABLE) {
                 playerData.discoveredWaystones.add(waystoneHash);
                 player.sendMessage(Text
                         .translatable("message.sswaystones.discovered",
