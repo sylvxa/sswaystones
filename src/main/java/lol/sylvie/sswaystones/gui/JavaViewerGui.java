@@ -420,6 +420,12 @@ public class JavaViewerGui extends SimpleGui {
                 this.setSlot(i - offset, playerItemBuilder);
             }
         }
+
+        @Override
+        public void onClose() {
+            super.onClose();
+            new TrustedPlayersGui(waystone, player).open();
+        }
     }
 
     public static class AddTrustedOfflinePlayerGui extends AnvilInputGui {
@@ -557,6 +563,12 @@ public class JavaViewerGui extends SimpleGui {
                 return matcher.group(1);
             }
             return null;
+        }
+
+        @Override
+        public void onClose() {
+            super.onClose();
+            new TrustedPlayersGui(waystone, player).open();
         }
     }
 
@@ -756,6 +768,12 @@ public class JavaViewerGui extends SimpleGui {
                 return matcher.group(1);
             }
             return null;
+        }
+
+        @Override
+        public void onClose() {
+            super.onClose();
+            new AccessSettingsGui(waystone, player).open();
         }
     }
 }
