@@ -83,6 +83,13 @@ public class JavaViewerGui extends SimpleGui {
             GuiElementBuilder element = new GuiElementBuilder(record.getIconOrHead(player.server))
                     .setName(record.getWaystoneText().copy().formatted(Formatting.YELLOW));
 
+            if(element.asStack().isEmpty() || element.asStack().isOf(Items.AIR)) {
+                element = new GuiElementBuilder(createPlayerHead(record.getOwnerUUID(), record.getOwnerName()))
+                        .setName(record.getWaystoneText().copy().formatted(Formatting.YELLOW));
+                record.setIcon(createPlayerHead(record.getOwnerUUID(), record.getOwnerName()));
+            }
+
+            element.setCount(1);
             if (!record.getAccessSettings().isServerOwned()){
                 element.setLore(List.of(Text.of(record.getOwnerName())));
             }
@@ -793,6 +800,12 @@ public class JavaViewerGui extends SimpleGui {
     private static ItemStack createPlayerHead(ServerPlayerEntity player) {
         ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
         skull.set(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()));
+        return skull;
+    }
+
+    private static ItemStack createPlayerHead(UUID playerUUID, String playerName) {
+        ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
+        skull.set(DataComponentTypes.PROFILE, new ProfileComponent(new GameProfile(playerUUID, playerName)));
         return skull;
     }
 }

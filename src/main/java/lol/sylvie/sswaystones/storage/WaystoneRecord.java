@@ -197,7 +197,14 @@ public final class WaystoneRecord {
     }
 
     public ItemStack getIconOrHead(@Nullable MinecraftServer server) {
-        if (icon != null && icon != Items.PLAYER_HEAD.getDefaultStack())
+        if(icon == null || icon.isEmpty() || icon.getItem() == Items.AIR) {
+            return createPlayerHead(this.getOwnerUUID(), this.getOwnerName());
+        }
+
+        if(icon.getCount() <= 0 || icon.getCount() > 99)
+            icon.setCount(1);
+
+        if (icon != Items.PLAYER_HEAD.getDefaultStack())
             return icon;
 
         // The server has to fetch the player's skin
@@ -249,11 +256,27 @@ public final class WaystoneRecord {
     }
 
     public ItemStack getIcon() {
+        if(icon.getCount() <= 0 || icon.getCount() > 99)
+            icon.setCount(1);
+
         return icon;
     }
 
     public void setIcon(ItemStack icon) {
-        this.icon = icon;
+        // Null check
+        if (icon == null) {
+            this.icon = Items.PLAYER_HEAD.getDefaultStack();
+            return;
+        }
+
+        ItemStack iconCopy = icon.copy();
+        if (iconCopy.getCount() <= 0 || iconCopy.getCount() > 99)
+            iconCopy.setCount(1);
+
+        if (iconCopy.getItem() == Items.AIR || iconCopy.isEmpty())
+            iconCopy = Items.PLAYER_HEAD.getDefaultStack();
+
+        this.icon = iconCopy;
     }
 
     public static class AccessSettings {
@@ -367,5 +390,17 @@ public final class WaystoneRecord {
 
     public ServerWorld getWorld(MinecraftServer server) {
         return server.getWorld(this.getWorldKey());
+    }
+
+    private ItemStack createPlayerHead(ServerPlayerEntity player) {
+        ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
+        skull.set(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()));
+        return skull;
+    }
+
+    private ItemStack createPlayerHead(UUID playerUUID, String playerName) {
+        ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
+        skull.set(DataComponentTypes.PROFILE, new ProfileComponent(new GameProfile(playerUUID, playerName)));
+        return skull;
     }
 }
