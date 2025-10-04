@@ -81,7 +81,7 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
             ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
 
-        if (world.isClient || placer == null)
+        if (world.isClient() || placer == null)
             return;
         if (!(placer instanceof ServerPlayerEntity player))
             return;
@@ -124,8 +124,8 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (player instanceof ServerPlayerEntity serverPlayer) {
-            assert serverPlayer.getServer() != null;
-            WaystoneStorage storage = WaystoneStorage.getServerState(serverPlayer.getServer());
+            MinecraftServer server = serverPlayer.getEntityWorld().getServer();
+            WaystoneStorage storage = WaystoneStorage.getServerState(server);
             PlayerData playerData = WaystoneStorage.getPlayerState(serverPlayer);
 
             // Make sure we remember it!

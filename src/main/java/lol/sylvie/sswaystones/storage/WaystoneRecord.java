@@ -6,6 +6,7 @@ package lol.sylvie.sswaystones.storage;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTextures;
+import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.ProfileResult;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -26,6 +27,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.particle.DragonBreathParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
@@ -85,7 +87,8 @@ public final class WaystoneRecord {
     }
 
     public void handleTeleport(ServerPlayerEntity player) {
-        MinecraftServer server = player.getServer();
+        World world = player.getEntityWorld();
+        MinecraftServer server = world.getServer();
         assert server != null;
 
         // Run on main thread to avoid a race condition for Geyser players
@@ -132,7 +135,7 @@ public final class WaystoneRecord {
             BlockState headState = targetWorld.getBlockState(head);
             if (!headState.getCollisionShape(targetWorld, head).isEmpty()) {
                 if (headState.getHardness(targetWorld, head) != -1) {
-                    player.getServer().executeSync(() -> targetWorld.breakBlock(head, true));
+                    server.executeSync(() -> targetWorld.breakBlock(head, true));
                 }
             }
 
@@ -170,8 +173,8 @@ public final class WaystoneRecord {
         player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), Set.of(), player.getYaw(),
                 player.getPitch(), false);
         targetWorld.playSound(null, target, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1f);
-        targetWorld.spawnParticles(ParticleTypes.DRAGON_BREATH, center.getX(), center.getY() + 1f, center.getZ(), 16,
-                0.5d, 0.5d, 0.5d, 0.1d);
+        targetWorld.spawnParticles(DragonBreathParticleEffect.of(ParticleTypes.DRAGON_BREATH, 1f), center.getX(),
+                center.getY() + 1f, center.getZ(), 16, 0.5d, 0.5d, 0.5d, 0.1d);
     }
 
     public boolean canPlayerEdit(ServerPlayerEntity player) {
@@ -182,7 +185,7 @@ public final class WaystoneRecord {
         Configuration.Instance config = Waystones.configuration.getInstance();
         if (player.isCreative())
             return 0;
-        return player.getWorld().getRegistryKey().equals(this.getWorldKey())
+        return player.getEntityWorld().getRegistryKey().equals(this.getWorldKey())
                 ? config.xpCost
                 : config.crossDimensionXpCost;
     }
@@ -193,14 +196,17 @@ public final class WaystoneRecord {
 
         // The server has to fetch the player's skin
         GameProfile profile = new GameProfile(this.getOwnerUUID(), this.getOwnerName());
-        if (server != null && server.getSessionService().getTextures(profile) == MinecraftProfileTextures.EMPTY) {
-            ProfileResult fetched = server.getSessionService().fetchProfile(profile.getId(), false);
-            if (fetched != null)
-                profile = fetched.profile();
+        if (server != null) {
+            MinecraftSessionService service = server.getApiServices().sessionService();
+            if (service.getTextures(profile) == MinecraftProfileTextures.EMPTY) {
+                ProfileResult fetched = service.fetchProfile(profile.id(), false);
+                if (fetched != null)
+                    profile = fetched.profile();
+            }
         }
 
         ItemStack head = Items.PLAYER_HEAD.getDefaultStack();
-        head.set(DataComponentTypes.PROFILE, new ProfileComponent(profile));
+        head.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(profile));
         return head;
     }
 
@@ -215,7 +221,7 @@ public final class WaystoneRecord {
 
     public void setOwner(PlayerEntity player) {
         this.owner = player.getUuid();
-        this.ownerName = player.getGameProfile().getName();
+        this.ownerName = player.getGameProfile().name();
     }
 
     public String getWaystoneName() {

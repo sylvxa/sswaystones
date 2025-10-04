@@ -63,7 +63,7 @@ public class WaystoneStorage extends PersistentState {
     }
 
     public static PlayerData getPlayerState(ServerPlayerEntity player) {
-        WaystoneStorage serverState = getServerState(Objects.requireNonNull(player.getWorld().getServer()));
+        WaystoneStorage serverState = getServerState(Objects.requireNonNull(player.getEntityWorld().getServer()));
 
         return serverState.players.computeIfAbsent(player.getUuid(), uuid -> new PlayerData());
     }

@@ -36,8 +36,7 @@ public class BedrockViewerGui {
 
         SimpleForm.Builder builder = SimpleForm.builder().title(title);
 
-        assert player.getServer() != null; // It's a ServerPlayerEntity.
-        WaystoneStorage storage = WaystoneStorage.getServerState(player.getServer());
+        WaystoneStorage storage = WaystoneStorage.getServerState(player.getEntityWorld().getServer());
         List<WaystoneRecord> accessible = storage.getAccessibleWaystones(player, waystone);
 
         for (WaystoneRecord record : accessible) {

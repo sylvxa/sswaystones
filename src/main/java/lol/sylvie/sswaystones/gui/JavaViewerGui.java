@@ -33,8 +33,7 @@ public class JavaViewerGui extends SimpleGui {
         super(ScreenHandlerType.GENERIC_9X6, player, false);
         this.waystone = waystone;
 
-        assert player.getServer() != null; // It's a ServerPlayerEntity.
-        WaystoneStorage storage = WaystoneStorage.getServerState(player.getServer());
+        WaystoneStorage storage = WaystoneStorage.getServerState(player.getEntityWorld().getServer());
         this.accessible = storage.getAccessibleWaystones(player, waystone);
         this.maxPages = Math.max(Math.ceilDiv(this.accessible.size(), ITEMS_PER_PAGE), 1);
 
@@ -62,7 +61,7 @@ public class JavaViewerGui extends SimpleGui {
             if (slot >= 45)
                 break;
 
-            GuiElementBuilder element = new GuiElementBuilder(record.getIconOrHead(player.getServer()))
+            GuiElementBuilder element = new GuiElementBuilder(record.getIconOrHead(player.getEntityWorld().getServer()))
                     .setName(record.getWaystoneText().copy().formatted(Formatting.YELLOW));
 
             if (!record.getAccessSettings().isServerOwned())
@@ -111,7 +110,7 @@ public class JavaViewerGui extends SimpleGui {
 
             // Setting menus
             this.setSlot(51,
-                    new GuiElementBuilder(waystone.getIconOrHead(player.getServer()))
+                    new GuiElementBuilder(waystone.getIconOrHead(player.getEntityWorld().getServer()))
                             .setName(Text.translatable("gui.sswaystones.change_icon").formatted(Formatting.YELLOW))
                             .glow().setCallback((index, type, action, gui) -> new IconGui(waystone, player).open()));
 
@@ -187,7 +186,7 @@ public class JavaViewerGui extends SimpleGui {
                 this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE).setName(
                         Text.translatable("gui.sswaystones.change_icon_instruction").formatted(Formatting.GRAY)));
             }
-            this.setSlot(4, waystone.getIconOrHead(player.getServer()));
+            this.setSlot(4, waystone.getIconOrHead(player.getEntityWorld().getServer()));
         }
 
         @Override
