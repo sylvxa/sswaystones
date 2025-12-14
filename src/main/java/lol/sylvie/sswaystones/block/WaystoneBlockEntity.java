@@ -14,20 +14,20 @@ import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.HashUtil;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.decoration.DisplayEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.scoreboard.Team;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -45,7 +45,7 @@ public class WaystoneBlockEntity extends BlockEntity {
         super(ModBlocks.WAYSTONE_BLOCK_ENTITY, pos, state);
     }
 
-    public static void tick(World world, WaystoneBlockEntity waystoneEntity) {
+    public static void tick(Level world, WaystoneBlockEntity waystoneEntity) {
         WaystoneRecord record = waystoneEntity.getThisWaystone(world);
         boolean waystoneOwned = record != null;
         boolean shouldCreateName = record != null && waystoneEntity.nameDisplay == null;
@@ -55,19 +55,19 @@ public class WaystoneBlockEntity extends BlockEntity {
             waystoneEntity.createHologramDisplay(world);
         }
 
-        Formatting color = Formatting.RESET;
+        ChatFormatting color = ChatFormatting.RESET;
         if (waystoneOwned) {
             // Team coloring
             String teamName = record.getAccessSettings().getTeam();
             if (!teamName.isEmpty()) {
-                Team team = world.getScoreboard().getTeam(teamName);
+                PlayerTeam team = world.getScoreboard().getPlayerTeam(teamName);
                 if (team != null) {
                     color = team.getColor();
                 }
             }
 
             if (waystoneEntity.nameDisplay != null) {
-                waystoneEntity.nameDisplay.setText(record.getWaystoneText().copy().formatted(color));
+                waystoneEntity.nameDisplay.setText(record.getWaystoneText().copy().withStyle(color));
             }
 
             // TODO: Maybe cache this value?
@@ -78,13 +78,13 @@ public class WaystoneBlockEntity extends BlockEntity {
         waystoneEntity.eyeDisplay.setYaw(waystoneEntity.eyeDisplay.getYaw() + 4f);
 
         // Particles
-        if (RANDOM.nextInt(0, 20) == 0 && world instanceof ServerWorld serverWorld) {
-            Vec3d pos = waystoneEntity.getPos().add(0, 1, 0).toCenterPos();
-            Integer colorValue = color.getColorValue();
-            serverWorld.spawnParticles(
-                    new DustParticleEffect(
-                            color == Formatting.RESET || colorValue == null ? Color.RED.getRGB() : colorValue, 1f),
-                    pos.getX(), pos.getY(), pos.getZ(), 8, 0.1d, 0.1d, 0.1d, 0.1d);
+        if (RANDOM.nextInt(0, 20) == 0 && world instanceof ServerLevel serverWorld) {
+            Vec3 pos = waystoneEntity.getBlockPos().offset(0, 1, 0).getCenter();
+            Integer colorValue = color.getColor();
+            serverWorld.sendParticles(
+                    new DustParticleOptions(
+                            color == ChatFormatting.RESET || colorValue == null ? Color.RED.getRGB() : colorValue, 1f),
+                    pos.x(), pos.y(), pos.z(), 8, 0.1d, 0.1d, 0.1d, 0.1d);
         }
 
         if (waystoneEntity.nameDisplay == null)
@@ -92,18 +92,18 @@ public class WaystoneBlockEntity extends BlockEntity {
 
         // Bob up and down
         double y = (Math.sin((double) System.currentTimeMillis() / 1000) / 32) + 1.55d;
-        waystoneEntity.nameDisplay.setOffset(new Vec3d(0, y, 0));
+        waystoneEntity.nameDisplay.setOffset(new Vec3(0, y, 0));
     }
 
-    private @Nullable WaystoneRecord getThisWaystone(World world) {
-        if (world.isClient())
+    private @Nullable WaystoneRecord getThisWaystone(Level world) {
+        if (world.isClientSide())
             return null;
         assert world.getServer() != null; // World can't be client.
 
         // Grab waystone if it isn't there
         if (this.waystone == null) {
             WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
-            this.waystone = storage.getWaystone(HashUtil.getHash(pos, world.getRegistryKey()));
+            this.waystone = storage.getWaystone(HashUtil.getHash(worldPosition, world.dimension()));
         }
 
         // This can still be null!
@@ -113,10 +113,10 @@ public class WaystoneBlockEntity extends BlockEntity {
     public static ItemStack getDisplayIcon(MinecraftServer server, @Nullable WaystoneRecord record) {
         return Waystones.configuration.getInstance().physicalIconDisplay && record != null
                 ? record.getIconOrHead(server)
-                : Items.ENDER_EYE.getDefaultStack();
+                : Items.ENDER_EYE.getDefaultInstance();
     }
 
-    public void createHologramDisplay(World world) {
+    public void createHologramDisplay(Level world) {
         this.removeDisplay();
 
         WaystoneRecord record = getThisWaystone(world);
@@ -124,9 +124,9 @@ public class WaystoneBlockEntity extends BlockEntity {
         // Eye display
         ItemStack stack = getDisplayIcon(world.getServer(), record);
 
-        stack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+        stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
         eyeDisplay = new ItemDisplayElement(stack);
-        eyeDisplay.setOffset(new Vec3d(0, 1.125, 0));
+        eyeDisplay.setOffset(new Vec3(0, 1.125, 0));
         eyeDisplay.setScale(new Vector3f(0.75f, 0.75f, 0.75f));
         eyeDisplay.setInterpolationDuration(2);
 
@@ -137,13 +137,13 @@ public class WaystoneBlockEntity extends BlockEntity {
             nameDisplay = new TextDisplayElement();
 
             nameDisplay.setText(record.getWaystoneText());
-            nameDisplay.setTextAlignment(DisplayEntity.TextDisplayEntity.TextAlignment.CENTER);
-            nameDisplay.setBillboardMode(DisplayEntity.BillboardMode.CENTER);
+            nameDisplay.setTextAlignment(Display.TextDisplay.Align.CENTER);
+            nameDisplay.setBillboardMode(Display.BillboardConstraints.CENTER);
 
             holder.addElement(nameDisplay);
         }
 
-        attachment = (ChunkAttachment) ChunkAttachment.ofTicking(holder, (ServerWorld) world, pos);
+        attachment = (ChunkAttachment) ChunkAttachment.ofTicking(holder, (ServerLevel) world, worldPosition);
     }
 
     public void removeDisplay() {

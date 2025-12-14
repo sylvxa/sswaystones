@@ -10,19 +10,19 @@ import java.util.*;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.util.NameGenerator;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.item.Items;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Uuids;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateManager;
-import net.minecraft.world.PersistentStateType;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.DimensionDataStorage;
 
-public class WaystoneStorage extends PersistentState {
+public class WaystoneStorage extends SavedData {
     public HashMap<String, WaystoneRecord> waystones;
     public HashMap<UUID, PlayerData> players;
 
@@ -38,10 +38,10 @@ public class WaystoneStorage extends PersistentState {
     public static final Codec<WaystoneStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.unboundedMap(Codec.STRING, WaystoneRecord.CODEC).fieldOf("waystones")
                     .forGetter(WaystoneStorage::getWaystones),
-            Codec.unboundedMap(Uuids.CODEC, PlayerData.CODEC).fieldOf("players").forGetter(WaystoneStorage::getPlayers))
+            Codec.unboundedMap(UUIDUtil.AUTHLIB_CODEC, PlayerData.CODEC).fieldOf("players").forGetter(WaystoneStorage::getPlayers))
             .apply(instance, WaystoneStorage::new));
 
-    private static final PersistentStateType<WaystoneStorage> TYPE = new PersistentStateType<>(Waystones.MOD_ID,
+    private static final SavedDataType<WaystoneStorage> TYPE = new SavedDataType<>(Waystones.MOD_ID,
             WaystoneStorage::new, CODEC, null);
 
     public Map<String, WaystoneRecord> getWaystones() {
@@ -53,19 +53,19 @@ public class WaystoneStorage extends PersistentState {
     }
 
     public static WaystoneStorage getServerState(MinecraftServer server) {
-        PersistentStateManager persistentStateManager = Objects.requireNonNull(server.getWorld(World.OVERWORLD))
-                .getPersistentStateManager();
-        WaystoneStorage state = persistentStateManager.getOrCreate(TYPE);
+        DimensionDataStorage persistentStateManager = Objects.requireNonNull(server.getLevel(Level.OVERWORLD))
+                .getDataStorage();
+        WaystoneStorage state = persistentStateManager.computeIfAbsent(TYPE);
 
-        state.markDirty();
+        state.setDirty();
 
         return state;
     }
 
-    public static PlayerData getPlayerState(ServerPlayerEntity player) {
-        WaystoneStorage serverState = getServerState(Objects.requireNonNull(player.getEntityWorld().getServer()));
+    public static PlayerData getPlayerState(ServerPlayer player) {
+        WaystoneStorage serverState = getServerState(Objects.requireNonNull(player.level().getServer()));
 
-        return serverState.players.computeIfAbsent(player.getUuid(), uuid -> new PlayerData());
+        return serverState.players.computeIfAbsent(player.getUUID(), uuid -> new PlayerData());
     }
 
     // Utility functions
@@ -73,7 +73,7 @@ public class WaystoneStorage extends PersistentState {
         return this.waystones.get(hash);
     }
 
-    public List<WaystoneRecord> getAccessibleWaystones(ServerPlayerEntity player, WaystoneRecord record) {
+    public List<WaystoneRecord> getAccessibleWaystones(ServerPlayer player, WaystoneRecord record) {
         // Get all waystones that the player can access
         // Sorted by name, though prioritize server owned waystones
         return this.waystones.values().stream()
@@ -84,24 +84,24 @@ public class WaystoneStorage extends PersistentState {
     }
 
     // Create a waystone
-    public WaystoneRecord createWaystone(BlockPos pos, World world, ServerPlayerEntity player) {
+    public WaystoneRecord createWaystone(BlockPos pos, Level world, ServerPlayer player) {
         if (!Permissions.check(player, "sswaystones.create.place", true)) {
-            player.sendMessage(Text.translatable("error.sswaystones.no_create_permission").formatted(Formatting.RED));
+            player.sendSystemMessage(Component.translatable("error.sswaystones.no_create_permission").withStyle(ChatFormatting.RED));
             return null;
         }
 
         int waystoneLimit = Waystones.configuration.getInstance().waystoneLimit;
         int waystoneCount = (int) waystones.values().stream()
-                .filter(w -> w.getOwnerUUID().equals(player.getUuid()) && !w.getAccessSettings().isServerOwned())
+                .filter(w -> w.getOwnerUUID().equals(player.getUUID()) && !w.getAccessSettings().isServerOwned())
                 .count();
         if (waystoneLimit != 0 && waystoneCount >= waystoneLimit
                 && !Permissions.check(player, "sswaystones.manager.bypass_limit", 4)) {
-            player.sendMessage(Text.translatable("error.sswaystones.reached_limit").formatted(Formatting.RED));
+            player.sendSystemMessage(Component.translatable("error.sswaystones.reached_limit").withStyle(ChatFormatting.RED));
             return null;
         }
 
-        WaystoneRecord record = new WaystoneRecord(player.getUuid(), player.getName().getString(),
-                NameGenerator.generateName(), pos, world.getRegistryKey(),
+        WaystoneRecord record = new WaystoneRecord(player.getUUID(), player.getName().getString(),
+                NameGenerator.generateName(), pos, world.dimension(),
                 new WaystoneRecord.AccessSettings(false, false, ""), Items.PLAYER_HEAD);
         String hash = record.getHash();
         this.waystones.put(hash, record);

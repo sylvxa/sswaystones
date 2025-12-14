@@ -10,14 +10,14 @@ import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.block.ModBlocks;
 import lol.sylvie.sswaystones.block.WaystoneBlock;
 import lol.sylvie.sswaystones.block.WaystoneStyle;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Rarity;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 
 public class ModItems {
     // This is considered the "default" waystone for backwards compatibility;
@@ -45,30 +45,30 @@ public class ModItems {
 
     public static final Item PORTABLE_WAYSTONE = register(
             new PortableWaystoneItem(
-                    new Item.Settings().registryKey(PortableWaystoneItem.KEY).rarity(Rarity.EPIC).maxCount(1)),
+                    new Item.Properties().setId(PortableWaystoneItem.KEY).rarity(Rarity.EPIC).stacksTo(1)),
             PortableWaystoneItem.ID);
 
-    public static final ItemGroup ITEM_GROUP = PolymerItemGroupUtils.builder()
-            .displayName(Text.translatable("itemGroup.sswaystones.item_group"))
-            .icon(Items.STONE_BRICK_WALL::getDefaultStack).entries((context, entries) -> {
+    public static final CreativeModeTab ITEM_GROUP = PolymerItemGroupUtils.builder()
+            .title(Component.translatable("itemGroup.sswaystones.item_group"))
+            .icon(Items.STONE_BRICK_WALL::getDefaultInstance).displayItems((context, entries) -> {
                 for (Item item : WAYSTONES) {
-                    entries.add(item);
+                    entries.accept(item);
                 }
-                entries.add(PORTABLE_WAYSTONE);
+                entries.accept(PORTABLE_WAYSTONE);
             }).build();
 
     public static Item register(Item item, Identifier identifier) {
-        return Registry.register(Registries.ITEM, identifier, item);
+        return Registry.register(BuiltInRegistries.ITEM, identifier, item);
     }
 
     public static WaystoneBlockItem registerWaystoneStyle(WaystoneBlock block) {
         WaystoneStyle style = block.getStyle();
-        Item.Settings settings = new Item.Settings().useBlockPrefixedTranslationKey()
-                .registryKey(style.getItemRegistryKey()).rarity(Rarity.RARE);
+        Item.Properties settings = new Item.Properties().useBlockDescriptionPrefix()
+                .setId(style.getItemRegistryKey()).rarity(Rarity.RARE);
         return (WaystoneBlockItem) register(new WaystoneBlockItem(block, settings), style.getId());
     }
 
     public static void initialize() {
-        PolymerItemGroupUtils.registerPolymerItemGroup(Identifier.of(Waystones.MOD_ID, "item_group"), ITEM_GROUP);
+        PolymerItemGroupUtils.registerPolymerItemGroup(Identifier.fromNamespaceAndPath(Waystones.MOD_ID, "item_group"), ITEM_GROUP);
     }
 }

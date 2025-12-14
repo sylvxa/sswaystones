@@ -10,8 +10,8 @@ import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.NameGenerator;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.scoreboard.Team;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.scores.PlayerTeam;
 import org.geysermc.cumulus.component.ButtonComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.Form;
@@ -22,12 +22,12 @@ import org.jetbrains.annotations.Nullable;
 public class BedrockViewerGui {
     private static final String AVATAR_API = "https://api.tydiumcraft.net/v1/players/skin?uuid=%s&type=avatar";
 
-    public static void openGui(ServerPlayerEntity player, @Nullable WaystoneRecord waystone, Consumer<Form> sendForm) {
+    public static void openGui(ServerPlayer player, @Nullable WaystoneRecord waystone, Consumer<Form> sendForm) {
         SimpleForm form = BedrockViewerGui.getViewerForm(player, waystone, sendForm);
         sendForm.accept(form);
     }
 
-    public static SimpleForm getViewerForm(ServerPlayerEntity player, @Nullable WaystoneRecord waystone,
+    public static SimpleForm getViewerForm(ServerPlayer player, @Nullable WaystoneRecord waystone,
             Consumer<Form> sendForm) {
         String title = "Waystones";
         if (waystone != null) {
@@ -36,7 +36,7 @@ public class BedrockViewerGui {
 
         SimpleForm.Builder builder = SimpleForm.builder().title(title);
 
-        WaystoneStorage storage = WaystoneStorage.getServerState(player.getEntityWorld().getServer());
+        WaystoneStorage storage = WaystoneStorage.getServerState(player.level().getServer());
         List<WaystoneRecord> accessible = storage.getAccessibleWaystones(player, waystone);
 
         for (WaystoneRecord record : accessible) {
@@ -71,7 +71,7 @@ public class BedrockViewerGui {
         return builder.build();
     }
 
-    public static CustomForm getSettingsForm(ServerPlayerEntity player, WaystoneRecord waystone) {
+    public static CustomForm getSettingsForm(ServerPlayer player, WaystoneRecord waystone) {
         CustomForm.Builder builder = CustomForm.builder()
                 .title(String.format("%s - Settings", waystone.getWaystoneName()));
 
@@ -83,7 +83,7 @@ public class BedrockViewerGui {
             builder.toggle("Global", accessSettings.isGlobal());
         }
 
-        boolean teamAvailable = player.getScoreboardTeam() != null
+        boolean teamAvailable = player.getTeam() != null
                 && Permissions.check(player, "sswaystones.create.team", true);
         if (teamAvailable) {
             builder.toggle("Team", accessSettings.hasTeam());
@@ -108,7 +108,7 @@ public class BedrockViewerGui {
 
             if (teamAvailable) {
                 boolean team = response.asToggle(index);
-                Team playerTeam = player.getScoreboardTeam();
+                PlayerTeam playerTeam = player.getTeam();
                 if (team && playerTeam != null) {
                     accessSettings.setTeam(playerTeam.getName());
                 } else

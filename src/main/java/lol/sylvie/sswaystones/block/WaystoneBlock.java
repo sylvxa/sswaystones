@@ -12,31 +12,33 @@ import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.HashUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.block.enums.WallShape;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.WallBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.WallSide;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
+public class WaystoneBlock extends BaseEntityBlock implements PolymerBlock {
     private final WaystoneStyle style;
 
-    public WaystoneBlock(WaystoneStyle style, Settings settings) {
+    public WaystoneBlock(WaystoneStyle style, Properties settings) {
         super(settings);
         this.style = style;
     }
@@ -46,54 +48,54 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
     }
 
     @Override
-    protected MapCodec<? extends BlockWithEntity> getCodec() {
-        return createCodec((settings) -> new WaystoneBlock(style, settings));
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return simpleCodec((settings) -> new WaystoneBlock(style, settings));
     }
 
     // Visuals
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext packetContext) {
-        return this.style.getWall().getDefaultState().with(WallBlock.UP, true)
-                .with(WallBlock.EAST_WALL_SHAPE, WallShape.LOW).with(WallBlock.WEST_WALL_SHAPE, WallShape.LOW)
-                .with(WallBlock.NORTH_WALL_SHAPE, WallShape.LOW).with(WallBlock.SOUTH_WALL_SHAPE, WallShape.LOW);
+        return this.style.getWall().defaultBlockState().setValue(WallBlock.UP, true)
+                .setValue(WallBlock.EAST, WallSide.LOW).setValue(WallBlock.WEST, WallSide.LOW)
+                .setValue(WallBlock.NORTH, WallSide.LOW).setValue(WallBlock.SOUTH, WallSide.LOW);
     }
 
     // Should be indestructible by TNT, also lets me ignore some edge cases.
     @Override
-    public float getBlastResistance() {
+    public float getExplosionResistance() {
         return 1200;
     }
 
-    private static WaystoneRecord createWaystone(BlockPos pos, World world, ServerPlayerEntity player) {
+    private static WaystoneRecord createWaystone(BlockPos pos, Level world, ServerPlayer player) {
         assert world.getServer() != null;
         WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
         return storage.createWaystone(pos, world, player);
     }
 
-    private static WaystoneRecord getWaystone(BlockPos pos, ServerWorld world) {
+    private static WaystoneRecord getWaystone(BlockPos pos, ServerLevel world) {
         WaystoneStorage storage = WaystoneStorage.getServerState(world.getServer());
-        return storage.getWaystone(HashUtil.getHash(pos, world.getRegistryKey()));
+        return storage.getWaystone(HashUtil.getHash(pos, world.dimension()));
     }
 
     // Placing & breaking
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer,
+    public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity placer,
             ItemStack itemStack) {
-        super.onPlaced(world, pos, state, placer, itemStack);
+        super.setPlacedBy(world, pos, state, placer, itemStack);
 
-        if (world.isClient() || placer == null)
+        if (world.isClientSide() || placer == null)
             return;
-        if (!(placer instanceof ServerPlayerEntity player))
+        if (!(placer instanceof ServerPlayer player))
             return;
         createWaystone(pos, world, player);
     }
 
-    public static void onRemoved(World world, BlockPos pos) {
+    public static void onRemoved(Level world, BlockPos pos) {
         MinecraftServer server = world.getServer();
         assert server != null;
 
         WaystoneStorage storage = WaystoneStorage.getServerState(server);
-        WaystoneRecord record = getWaystone(pos, (ServerWorld) world);
+        WaystoneRecord record = getWaystone(pos, (ServerLevel) world);
 
         if (world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystoneBlockEntity) {
             waystoneBlockEntity.removeDisplay();
@@ -104,64 +106,64 @@ public class WaystoneBlock extends BlockWithEntity implements PolymerBlock {
     }
 
     @Override
-    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient())
+    public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+        if (!world.isClientSide())
             onRemoved(world, pos);
-        return super.onBreak(world, pos, state, player);
+        return super.playerWillDestroy(world, pos, state, player);
     }
 
     @Override
-    protected float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
-        WaystoneRecord record = getWaystone(pos, (ServerWorld) world);
+    protected float getDestroyProgress(BlockState state, Player player, BlockGetter world, BlockPos pos) {
+        WaystoneRecord record = getWaystone(pos, (ServerLevel) world);
         if (record == null || Permissions.check(player, "sswaystones.create.server", 4)) {
-            return super.calcBlockBreakingDelta(state, player, world, pos);
+            return super.getDestroyProgress(state, player, world, pos);
         }
 
-        return record.getAccessSettings().isServerOwned() ? 0 : super.calcBlockBreakingDelta(state, player, world, pos);
+        return record.getAccessSettings().isServerOwned() ? 0 : super.getDestroyProgress(state, player, world, pos);
     }
 
     // Open GUI
     @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (player instanceof ServerPlayerEntity serverPlayer) {
-            MinecraftServer server = serverPlayer.getEntityWorld().getServer();
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            MinecraftServer server = serverPlayer.level().getServer();
             WaystoneStorage storage = WaystoneStorage.getServerState(server);
             PlayerData playerData = WaystoneStorage.getPlayerState(serverPlayer);
 
             // Make sure we remember it!
-            String waystoneHash = HashUtil.getHash(pos, world.getRegistryKey());
+            String waystoneHash = HashUtil.getHash(pos, world.dimension());
             WaystoneRecord record = storage.getWaystone(waystoneHash);
 
             if (record == null) {
                 WaystoneRecord newWaystone = createWaystone(pos, world, serverPlayer);
                 if (newWaystone == null)
-                    return ActionResult.FAIL;
+                    return InteractionResult.FAIL;
                 record = newWaystone;
             }
 
             if (!playerData.discoveredWaystones.contains(waystoneHash)) {
                 playerData.discoveredWaystones.add(waystoneHash);
-                player.sendMessage(Text
+                player.displayClientMessage(Component
                         .translatable("message.sswaystones.discovered",
-                                record.getWaystoneText().copy().formatted(Formatting.BOLD, Formatting.GOLD))
-                        .formatted(Formatting.DARK_PURPLE), false);
+                                record.getWaystoneText().copy().withStyle(ChatFormatting.BOLD, ChatFormatting.GOLD))
+                        .withStyle(ChatFormatting.DARK_PURPLE), false);
             }
 
             ViewerUtil.openGui(serverPlayer, record);
-            return ActionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
-        return super.onUse(state, world, pos, player, hit);
+        return super.useWithoutItem(state, world, pos, player, hit);
     }
 
     // Block entity
     @Nullable
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new WaystoneBlockEntity(pos, state);
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state,
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state,
             BlockEntityType<T> type) {
         if (type.equals(ModBlocks.WAYSTONE_BLOCK_ENTITY)) {
             return (tickerWorld, pos, tickerState, blockEntity) -> WaystoneBlockEntity.tick(tickerWorld,

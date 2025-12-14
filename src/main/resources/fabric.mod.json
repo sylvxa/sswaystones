@@ -5,11 +5,19 @@
   "name": "sswaystones",
   "description": "Adds server-sided waystones, so vanilla/Bedrock clients can play along too!",
   "authors": [
-    "sylvxa"
+    {
+      "name": "sylvxa",
+      "contact": {
+        "email": "me@sylvie.lol",
+        "homepage": "https://sylvie.lol"
+      }
+    }
   ],
   "contact": {
-    "website": "sylvie.lol",
-    "repo": "https://github.com/sylvxa/server-side-waystones"
+    "repo": "https://github.com/sylvxa/sswaystones",
+    "homepage": "https://modrinth.com/mod/sswaystones",
+    "issues": "https://github.com/sylvxa/sswaystones/issues",
+    "discord": "https://discord.gg/5qzrB98sBA"
   },
   "license": "MIT",
   "icon": "assets/sswaystones/icon.png",
@@ -29,7 +37,7 @@
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
-    "minecraft": ["1.21.9", "1.21.10"],
-    "fabric-permissions-api-v0": "*"
+    "minecraft": ">=${minecraft_version}",
+    "fabric-permissions-api-v0": ">=${fabric_permissions_version}"
   }
 }

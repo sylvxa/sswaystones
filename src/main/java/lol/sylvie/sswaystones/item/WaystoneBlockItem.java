@@ -9,18 +9,18 @@ import eu.pb4.polymer.core.api.item.PolymerItemUtils;
 import java.util.List;
 import lol.sylvie.sswaystones.block.WaystoneBlock;
 import lol.sylvie.sswaystones.block.WaystoneStyle;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomModelData;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class WaystoneBlockItem extends BlockItem implements PolymerItem {
     private final WaystoneStyle style;
 
-    public WaystoneBlockItem(WaystoneBlock block, Settings settings) {
+    public WaystoneBlockItem(WaystoneBlock block, Properties settings) {
         super(block, settings);
         this.style = block.getStyle();
     }
@@ -35,11 +35,11 @@ public class WaystoneBlockItem extends BlockItem implements PolymerItem {
     }
 
     @Override
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType tooltipType, PacketContext context) {
+    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipFlag tooltipType, PacketContext context) {
         ItemStack out = PolymerItemUtils.createItemStack(itemStack, tooltipType, context);
-        out.set(DataComponentTypes.ITEM_MODEL, style.getWallId());
-        out.set(DataComponentTypes.CUSTOM_MODEL_DATA,
-                new CustomModelDataComponent(List.of(), List.of(), List.of(style.getId().toString()), List.of()));
+        out.set(DataComponents.ITEM_MODEL, style.getWallId());
+        out.set(DataComponents.CUSTOM_MODEL_DATA,
+                new CustomModelData(List.of(), List.of(), List.of(style.getId().toString()), List.of()));
         return out;
     }
 }

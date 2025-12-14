@@ -8,12 +8,12 @@ import eu.pb4.polymer.core.api.block.PolymerBlockUtils;
 import java.util.List;
 import lol.sylvie.sswaystones.Waystones;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 
 public class ModBlocks {
     // This is considered the "default" waystone for backwards compatibility;
@@ -37,16 +37,16 @@ public class ModBlocks {
             NETHER_BRICK_WAYSTONE, RED_NETHER_BRICK_WAYSTONE, BLACKSTONE_WAYSTONE, END_STONE_WAYSTONE);
 
     public static final BlockEntityType<WaystoneBlockEntity> WAYSTONE_BLOCK_ENTITY = Registry.register(
-            Registries.BLOCK_ENTITY_TYPE, Identifier.of(Waystones.MOD_ID, "waystone_block_entity"),
+            BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Waystones.MOD_ID, "waystone_block_entity"),
             FabricBlockEntityTypeBuilder.create(WaystoneBlockEntity::new).addBlocks(WAYSTONES).build());
 
     public static Block register(Block block, Identifier identifier) {
-        return Registry.register(Registries.BLOCK, identifier, block);
+        return Registry.register(BuiltInRegistries.BLOCK, identifier, block);
     }
 
     public static WaystoneBlock registerWaystoneStyle(WaystoneStyle style) {
-        AbstractBlock.Settings settings = AbstractBlock.Settings.create().registryKey(style.getBlockRegistryKey())
-                .hardness(1.5f).resistance(3600000);
+        BlockBehaviour.Properties settings = BlockBehaviour.Properties.of().setId(style.getBlockRegistryKey())
+                .destroyTime(1.5f).explosionResistance(3600000);
         return (WaystoneBlock) register(new WaystoneBlock(style, settings), style.getId());
     }
 

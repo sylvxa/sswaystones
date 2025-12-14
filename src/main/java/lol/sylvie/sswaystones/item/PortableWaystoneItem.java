@@ -9,44 +9,44 @@ import eu.pb4.polymer.core.api.item.SimplePolymerItem;
 import java.util.List;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.gui.ViewerUtil;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomModelData;
+import net.minecraft.world.level.Level;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class PortableWaystoneItem extends SimplePolymerItem {
     public static final Identifier ID = Waystones.id("portable_waystone");
-    public static final RegistryKey<Item> KEY = RegistryKey.of(Registries.ITEM.getKey(), ID);
+    public static final ResourceKey<Item> KEY = ResourceKey.create(BuiltInRegistries.ITEM.key(), ID);
 
-    public PortableWaystoneItem(Settings settings) {
+    public PortableWaystoneItem(Properties settings) {
         super(settings, Items.ENDER_EYE);
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if (user instanceof ServerPlayerEntity player)
+    public InteractionResult use(Level world, Player user, InteractionHand hand) {
+        if (user instanceof ServerPlayer player)
             ViewerUtil.openGui(player, null);
 
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType tooltipType, PacketContext context) {
+    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipFlag tooltipType, PacketContext context) {
         ItemStack out = PolymerItemUtils.createItemStack(itemStack, tooltipType, context);
-        out.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
-        out.set(DataComponentTypes.CUSTOM_MODEL_DATA,
-                new CustomModelDataComponent(List.of(), List.of(), List.of(ID.toString()), List.of()));
+        out.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+        out.set(DataComponents.CUSTOM_MODEL_DATA,
+                new CustomModelData(List.of(), List.of(), List.of(ID.toString()), List.of()));
         return out;
     }
 }

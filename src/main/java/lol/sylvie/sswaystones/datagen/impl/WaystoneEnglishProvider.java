@@ -10,28 +10,28 @@ import lol.sylvie.sswaystones.block.WaystoneBlock;
 import lol.sylvie.sswaystones.block.WaystoneStyle;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
 
 public class WaystoneEnglishProvider extends FabricLanguageProvider {
     public WaystoneEnglishProvider(FabricDataOutput dataOutput,
-            CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
+            CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(dataOutput, registryLookup);
     }
 
     @Override
-    public void generateTranslations(RegistryWrapper.WrapperLookup wrapperLookup,
+    public void generateTranslations(HolderLookup.Provider wrapperLookup,
             TranslationBuilder translationBuilder) {
         for (WaystoneBlock block : ModBlocks.WAYSTONES) {
             WaystoneStyle style = block.getStyle();
             if (style == WaystoneStyle.STONE)
                 continue;
-            String baseName = Text.translatable(style.getBase().getTranslationKey()).getString();
+            String baseName = Component.translatable(style.getBase().getDescriptionId()).getString();
 
             if (baseName.endsWith("s"))
                 baseName = baseName.substring(0, baseName.length() - 1);
 
-            translationBuilder.add(block.getTranslationKey(), String.format("%s %s", baseName, "Waystone"));
+            translationBuilder.add(block.getDescriptionId(), String.format("%s %s", baseName, "Waystone"));
         }
     }
 }

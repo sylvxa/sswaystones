@@ -11,14 +11,13 @@ import java.util.List;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.scoreboard.Team;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.Nullable;
 
 public class JavaViewerGui extends SimpleGui {
@@ -29,11 +28,11 @@ public class JavaViewerGui extends SimpleGui {
     private final List<WaystoneRecord> accessible;
     private final int maxPages;
 
-    public JavaViewerGui(ServerPlayerEntity player, @Nullable WaystoneRecord waystone) {
-        super(ScreenHandlerType.GENERIC_9X6, player, false);
+    public JavaViewerGui(ServerPlayer player, @Nullable WaystoneRecord waystone) {
+        super(MenuType.GENERIC_9x6, player, false);
         this.waystone = waystone;
 
-        WaystoneStorage storage = WaystoneStorage.getServerState(player.getEntityWorld().getServer());
+        WaystoneStorage storage = WaystoneStorage.getServerState(player.level().getServer());
         this.accessible = storage.getAccessibleWaystones(player, waystone);
         this.maxPages = Math.max(Math.ceilDiv(this.accessible.size(), ITEMS_PER_PAGE), 1);
 
@@ -43,10 +42,10 @@ public class JavaViewerGui extends SimpleGui {
     public void updateMenu() {
         // If there are no other waystones this will display as 0
         if (waystone != null) {
-            this.setTitle(Text.literal(String.format("%s [%s] (%s/%s)", waystone.getWaystoneName(),
+            this.setTitle(Component.literal(String.format("%s [%s] (%s/%s)", waystone.getWaystoneName(),
                     waystone.getOwnerName(), pageIndex + 1, maxPages)));
         } else {
-            this.setTitle(Text.literal(String.format("Waystones (%s/%s)", pageIndex + 1, maxPages)));
+            this.setTitle(Component.literal(String.format("Waystones (%s/%s)", pageIndex + 1, maxPages)));
         }
 
         int offset = ITEMS_PER_PAGE * pageIndex;
@@ -61,11 +60,11 @@ public class JavaViewerGui extends SimpleGui {
             if (slot >= 45)
                 break;
 
-            GuiElementBuilder element = new GuiElementBuilder(record.getIconOrHead(player.getEntityWorld().getServer()))
-                    .setName(record.getWaystoneText().copy().formatted(Formatting.YELLOW));
+            GuiElementBuilder element = new GuiElementBuilder(record.getIconOrHead(player.level().getServer()))
+                    .setName(record.getWaystoneText().copy().withStyle(ChatFormatting.YELLOW));
 
             if (!record.getAccessSettings().isServerOwned())
-                element.setLore(List.of(Text.of(record.getOwnerName())));
+                element.setLore(List.of(Component.nullToEmpty(record.getOwnerName())));
             else
                 element.glow(true);
 
@@ -78,18 +77,18 @@ public class JavaViewerGui extends SimpleGui {
         }
 
         for (int i = 45; i < 54; i++) {
-            this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE).setName(Text.empty()));
+            this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE).setName(Component.empty()));
         }
 
         // Gui controls
         this.setSlot(45,
                 new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.ARROW_LEFT)
-                        .setName(Text.translatable("gui.sswaystones.page_previous"))
+                        .setName(Component.translatable("gui.sswaystones.page_previous"))
                         .setCallback((index, type, action, gui) -> previousPage()));
 
         this.setSlot(47,
                 new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.ARROW_RIGHT)
-                        .setName(Text.translatable("gui.sswaystones.page_next"))
+                        .setName(Component.translatable("gui.sswaystones.page_next"))
                         .setCallback((index, type, action, gui) -> nextPage()));
 
         // Waystone settings
@@ -98,10 +97,10 @@ public class JavaViewerGui extends SimpleGui {
 
         if (waystone.canPlayerEdit(player)) {
             if (Permissions.check(player, "sswaystones.manager", 4)
-                    && !waystone.getOwnerUUID().equals(player.getUuid())) {
+                    && !waystone.getOwnerUUID().equals(player.getUUID())) {
                 this.setSlot(50,
                         new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.CHEST)
-                                .setName(Text.translatable("gui.sswaystones.steal_waystone").formatted(Formatting.RED))
+                                .setName(Component.translatable("gui.sswaystones.steal_waystone").withStyle(ChatFormatting.RED))
                                 .setCallback((index, type, action, gui) -> {
                                     waystone.setOwner(player);
                                     this.updateMenu();
@@ -110,17 +109,17 @@ public class JavaViewerGui extends SimpleGui {
 
             // Setting menus
             this.setSlot(51,
-                    new GuiElementBuilder(waystone.getIconOrHead(player.getEntityWorld().getServer()))
-                            .setName(Text.translatable("gui.sswaystones.change_icon").formatted(Formatting.YELLOW))
+                    new GuiElementBuilder(waystone.getIconOrHead(player.level().getServer()))
+                            .setName(Component.translatable("gui.sswaystones.change_icon").withStyle(ChatFormatting.YELLOW))
                             .glow().setCallback((index, type, action, gui) -> new IconGui(waystone, player).open()));
 
             this.setSlot(52,
                     new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.ANVIL)
-                            .setName(Text.translatable("gui.sswaystones.change_name").formatted(Formatting.YELLOW))
+                            .setName(Component.translatable("gui.sswaystones.change_name").withStyle(ChatFormatting.YELLOW))
                             .setCallback((index, type, action, gui) -> new NameGui(waystone, player).open()));
 
             this.setSlot(53, new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.COMMAND_BLOCK)
-                    .setName(Text.translatable("gui.sswaystones.access_settings").formatted(Formatting.LIGHT_PURPLE))
+                    .setName(Component.translatable("gui.sswaystones.access_settings").withStyle(ChatFormatting.LIGHT_PURPLE))
                     .setCallback((index, type, action, gui) -> new AccessSettingsGui(waystone, player).open()));
         }
     }
@@ -146,22 +145,22 @@ public class JavaViewerGui extends SimpleGui {
     protected static class NameGui extends AnvilInputGui {
         private final WaystoneRecord waystone;
 
-        public NameGui(WaystoneRecord waystone, ServerPlayerEntity player) {
+        public NameGui(WaystoneRecord waystone, ServerPlayer player) {
             super(player, false);
             this.waystone = waystone;
 
             this.setDefaultInputValue(waystone.getWaystoneName());
             this.setSlot(1, new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.CANCEL)
-                    .setName(Text.translatable("gui.back")).setCallback((index, type, action, gui) -> gui.close()));
+                    .setName(Component.translatable("gui.back")).setCallback((index, type, action, gui) -> gui.close()));
 
             this.setSlot(2, new GuiElementBuilder(Items.PLAYER_HEAD).setSkullOwner(IconConstants.CHECKMARK)
-                    .setName(Text.translatable("gui.done")).setCallback((index, type, action, gui) -> {
+                    .setName(Component.translatable("gui.done")).setCallback((index, type, action, gui) -> {
                         String input = this.getInput();
                         waystone.setWaystoneName(input);
                         gui.close();
                     }));
 
-            this.setTitle(Text.translatable("gui.sswaystones.change_name_title"));
+            this.setTitle(Component.translatable("gui.sswaystones.change_name_title"));
         }
 
         @Override
@@ -174,29 +173,29 @@ public class JavaViewerGui extends SimpleGui {
     protected static class IconGui extends SimpleGui {
         private final WaystoneRecord waystone;
 
-        public IconGui(WaystoneRecord waystone, ServerPlayerEntity player) {
-            super(ScreenHandlerType.GENERIC_3X3, player, false);
+        public IconGui(WaystoneRecord waystone, ServerPlayer player) {
+            super(MenuType.GENERIC_3x3, player, false);
             this.waystone = waystone;
             this.updateMenu();
-            this.setTitle(Text.translatable("gui.sswaystones.change_icon_title"));
+            this.setTitle(Component.translatable("gui.sswaystones.change_icon_title"));
         }
 
         private void updateMenu() {
             for (int i = 0; i < 9; i++) {
                 this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE).setName(
-                        Text.translatable("gui.sswaystones.change_icon_instruction").formatted(Formatting.GRAY)));
+                        Component.translatable("gui.sswaystones.change_icon_instruction").withStyle(ChatFormatting.GRAY)));
             }
-            this.setSlot(4, waystone.getIconOrHead(player.getEntityWorld().getServer()));
+            this.setSlot(4, waystone.getIconOrHead(player.level().getServer()));
         }
 
         @Override
-        public boolean onAnyClick(int index, ClickType type, SlotActionType action) {
-            if (index > 8 && action.equals(SlotActionType.PICKUP)) {
+        public boolean onAnyClick(int index, ClickType type, net.minecraft.world.inventory.ClickType action) {
+            if (index > 8 && action.equals(net.minecraft.world.inventory.ClickType.PICKUP)) {
                 if (index > 35)
                     index -= 36; // Get hotbar slot
-                ItemStack stack = player.getInventory().getStack(index);
+                ItemStack stack = player.getInventory().getItem(index);
 
-                if (stack != null && !stack.isOf(Items.AIR)) {
+                if (stack != null && !stack.is(Items.AIR)) {
                     waystone.setIcon(stack.getItem());
                     this.close();
                 }
@@ -214,11 +213,11 @@ public class JavaViewerGui extends SimpleGui {
     protected static class AccessSettingsGui extends SimpleGui {
         private final WaystoneRecord waystone;
 
-        public AccessSettingsGui(WaystoneRecord waystone, ServerPlayerEntity player) {
-            super(ScreenHandlerType.GENERIC_9X3, player, false);
+        public AccessSettingsGui(WaystoneRecord waystone, ServerPlayer player) {
+            super(MenuType.GENERIC_9x3, player, false);
             this.waystone = waystone;
 
-            this.setTitle(Text.translatable("gui.sswaystones.access_settings"));
+            this.setTitle(Component.translatable("gui.sswaystones.access_settings"));
             this.updateMenu();
         }
 
@@ -226,7 +225,7 @@ public class JavaViewerGui extends SimpleGui {
             // Framing
             for (int i = 0; i < (9 * 3); i++) {
                 this.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS_PANE).setName(
-                        Text.translatable("gui.sswaystones.access_settings_instruction").formatted(Formatting.GRAY)));
+                        Component.translatable("gui.sswaystones.access_settings_instruction").withStyle(ChatFormatting.GRAY)));
             }
 
             for (int i = 10; i < 17; i++) {
@@ -240,8 +239,8 @@ public class JavaViewerGui extends SimpleGui {
             // Global
             if (Permissions.check(player, "sswaystones.create.global", true)) {
                 GuiElementBuilder globalToggle = new GuiElementBuilder(Items.PLAYER_HEAD)
-                        .setSkullOwner(IconConstants.GLOBE).setName(Text.translatable("gui.sswaystones.toggle_global")
-                                .formatted(accessSettings.isGlobal() ? Formatting.GREEN : Formatting.RED));
+                        .setSkullOwner(IconConstants.GLOBE).setName(Component.translatable("gui.sswaystones.toggle_global")
+                                .withStyle(accessSettings.isGlobal() ? ChatFormatting.GREEN : ChatFormatting.RED));
 
                 globalToggle.setCallback((index, type, action, gui) -> {
                     accessSettings.setGlobal(!accessSettings.isGlobal());
@@ -252,12 +251,12 @@ public class JavaViewerGui extends SimpleGui {
             }
 
             // Team
-            Team team = player.getScoreboardTeam();
+            PlayerTeam team = player.getTeam();
             if (team != null && Permissions.check(player, "sswaystones.create.team", true)) {
                 String teamName = team.getName();
                 GuiElementBuilder teamToggle = new GuiElementBuilder(Items.PLAYER_HEAD)
-                        .setSkullOwner(IconConstants.SHIELD).setName(Text.translatable("gui.sswaystones.toggle_team")
-                                .formatted(accessSettings.hasTeam() ? Formatting.GREEN : Formatting.RED));
+                        .setSkullOwner(IconConstants.SHIELD).setName(Component.translatable("gui.sswaystones.toggle_team")
+                                .withStyle(accessSettings.hasTeam() ? ChatFormatting.GREEN : ChatFormatting.RED));
 
                 teamToggle.setCallback((index, type, action, gui) -> {
                     accessSettings.setTeam(accessSettings.hasTeam() ? "" : teamName);
@@ -271,8 +270,8 @@ public class JavaViewerGui extends SimpleGui {
             if (Permissions.check(player, "sswaystones.create.server", 4)) {
                 GuiElementBuilder serverToggle = new GuiElementBuilder(Items.PLAYER_HEAD)
                         .setSkullOwner(IconConstants.OBSERVER)
-                        .setName(Text.translatable("gui.sswaystones.toggle_server")
-                                .formatted(accessSettings.isServerOwned() ? Formatting.GREEN : Formatting.RED));
+                        .setName(Component.translatable("gui.sswaystones.toggle_server")
+                                .withStyle(accessSettings.isServerOwned() ? ChatFormatting.GREEN : ChatFormatting.RED));
 
                 serverToggle.setCallback((index, type, action, gui) -> {
                     accessSettings.setServerOwned(!accessSettings.isServerOwned());
@@ -286,9 +285,9 @@ public class JavaViewerGui extends SimpleGui {
             if (slot == 10) {
                 this.setSlot(13,
                         new GuiElementBuilder(Items.BARRIER)
-                                .setLore(List.of(Text.translatable("error.sswaystones.no_modification_permission")
-                                        .formatted(Formatting.GRAY)))
-                                .setName(Text.translatable("gui.back").formatted(Formatting.RED))
+                                .setLore(List.of(Component.translatable("error.sswaystones.no_modification_permission")
+                                        .withStyle(ChatFormatting.GRAY)))
+                                .setName(Component.translatable("gui.back").withStyle(ChatFormatting.RED))
                                 .setCallback((index, type, action, gui) -> {
                                     this.close();
                                     ViewerUtil.openJavaGui(player, waystone);

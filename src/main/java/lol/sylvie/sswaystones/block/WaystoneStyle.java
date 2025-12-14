@@ -6,13 +6,13 @@ package lol.sylvie.sswaystones.block;
 
 import java.util.Optional;
 import lol.sylvie.sswaystones.Waystones;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.WallBlock;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.WallBlock;
 
 public enum WaystoneStyle {
     STONE(Blocks.STONE_BRICKS, Blocks.STONE_BRICK_WALL), DEEPSLATE(Blocks.DEEPSLATE_BRICKS,
@@ -42,10 +42,8 @@ public enum WaystoneStyle {
     }
 
     public Identifier getBaseId() {
-        Optional<RegistryKey<Block>> entry = Registries.BLOCK.getEntry(this.getBase()).getKey();
-        if (entry.isEmpty())
-            return Identifier.ofVanilla("stone_brick");
-        return entry.get().getValue();
+        Optional<ResourceKey<Block>> entry = BuiltInRegistries.BLOCK.wrapAsHolder(this.getBase()).unwrapKey();
+        return entry.map(ResourceKey::identifier).orElseGet(() -> Identifier.withDefaultNamespace("stone_brick"));
     }
 
     public WallBlock getWall() {
@@ -53,10 +51,8 @@ public enum WaystoneStyle {
     }
 
     public Identifier getWallId() {
-        Optional<RegistryKey<Item>> entry = Registries.ITEM.getEntry(this.getWall().asItem()).getKey();
-        if (entry.isEmpty())
-            return Identifier.ofVanilla("stone_brick_wall");
-        return entry.get().getValue();
+        Optional<ResourceKey<Item>> entry = BuiltInRegistries.ITEM.wrapAsHolder(this.getWall().asItem()).unwrapKey();
+        return entry.map(ResourceKey::identifier).orElseGet(() -> Identifier.withDefaultNamespace("stone_brick_wall"));
     }
 
     public Identifier getId() {
@@ -67,11 +63,11 @@ public enum WaystoneStyle {
         return Waystones.id(getBaseId().getPath() + "_waystone");
     }
 
-    public RegistryKey<Block> getBlockRegistryKey() {
-        return RegistryKey.of(Registries.BLOCK.getKey(), getId());
+    public ResourceKey<Block> getBlockRegistryKey() {
+        return ResourceKey.create(BuiltInRegistries.BLOCK.key(), getId());
     }
 
-    public RegistryKey<Item> getItemRegistryKey() {
-        return RegistryKey.of(Registries.ITEM.getKey(), getId());
+    public ResourceKey<Item> getItemRegistryKey() {
+        return ResourceKey.create(BuiltInRegistries.ITEM.key(), getId());
     }
 }

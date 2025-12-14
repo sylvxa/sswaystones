@@ -12,8 +12,8 @@ import lol.sylvie.sswaystones.config.Configuration;
 import lol.sylvie.sswaystones.item.ModItems;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +40,11 @@ public class Waystones implements ModInitializer {
     }
 
     public static Identifier id(String name) {
-        return Identifier.of(MOD_ID, name);
+        return Identifier.fromNamespaceAndPath(MOD_ID, name);
     }
 
-    public static boolean isInCombat(ServerPlayerEntity player) {
-        UUID uuid = player.getUuid();
+    public static boolean isInCombat(ServerPlayer player) {
+        UUID uuid = player.getUUID();
         if (!combatTimestamps.containsKey(uuid))
             return false;
         return combatTimestamps.get(uuid) + (configuration.getInstance().combatCooldown * 1000L) > System

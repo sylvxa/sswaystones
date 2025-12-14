@@ -4,9 +4,6 @@
 */
 package lol.sylvie.sswaystones.command;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
-
 import com.google.gson.annotations.SerializedName;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -23,27 +20,33 @@ import lol.sylvie.sswaystones.config.Description;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.server.level.ServerLevel;
+
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
+
 
 public class WaystonesCommand {
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("sswaystones")
-                .requires(source -> Permissions.check(source, "sswaystones.command", 4)).executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.literal("Server-Sided Waystones by sylvxa"), false);
+                .requires(source -> Permissions.check(source, "sswaystones.command", false)).executes(context -> {
+                    String version = FabricLoader.getInstance().getModContainer(Waystones.MOD_ID).orElseThrow().getMetadata().getVersion().getFriendlyString();
+                    context.getSource().sendSuccess(() -> Component.literal("sswaystones " + version + ", made with <3 by sylvie"), false);
                     return 1;
                 }).then(literal("list").executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.translatable("command.sswaystones.list_header"), false);
+                    context.getSource().sendSuccess(() -> Component.translatable("command.sswaystones.list_header"), false);
 
                     WaystoneStorage storage = WaystoneStorage.getServerState(context.getSource().getServer());
                     for (Map.Entry<String, WaystoneRecord> waystone : storage.waystones.entrySet()) {
                         WaystoneRecord record = waystone.getValue();
-                        context.getSource().sendFeedback(
-                                () -> Text.literal(
+                        context.getSource().sendSuccess(
+                                () -> Component.literal(
                                         String.format("(%s) [%s >" + " %s] %s", waystone.getKey().substring(0, 7),
                                                 record.getOwnerName(), record.getWaystoneName(), record.asString())),
                                 false);
@@ -58,7 +61,7 @@ public class WaystonesCommand {
                     if (entry.isEmpty()) {
                         throw new CommandSyntaxException(
                                 CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument(),
-                                Text.translatable("command.sswaystones.waystone_not_found"));
+                                Component.translatable("command.sswaystones.waystone_not_found"));
                     }
 
                     MinecraftServer server = context.getSource().getServer();
@@ -66,31 +69,31 @@ public class WaystonesCommand {
                     storage.destroyWaystone(record);
 
                     // Remove it in the world
-                    ServerWorld world = record.getWorld(server);
-                    if (world.getBlockState(record.getPos()).isOf(ModBlocks.WAYSTONE)) {
-                        world.breakBlock(record.getPos(), true);
+                    ServerLevel world = record.getWorld(server);
+                    if (world.getBlockState(record.getPos()).is(ModBlocks.WAYSTONE)) {
+                        world.destroyBlock(record.getPos(), true);
                     }
 
-                    context.getSource().sendFeedback(
-                            () -> Text.translatable("command.sswaystones.waystone_removed_successfully"), true);
+                    context.getSource().sendSuccess(
+                            () -> Component.translatable("command.sswaystones.waystone_removed_successfully"), true);
 
                     return 1;
                 }))).then(literal("config").then(literal("help").executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.translatable("command.sswaystones.config_help_header"),
+                    context.getSource().sendSuccess(() -> Component.translatable("command.sswaystones.config_help_header"),
                             false);
-                    for (Map.Entry<String, Text> option : getConfigOptions().entrySet()) {
-                        context.getSource().sendFeedback(() -> Text.translatable("command.sswaystones.config_format",
+                    for (Map.Entry<String, Component> option : getConfigOptions().entrySet()) {
+                        context.getSource().sendSuccess(() -> Component.translatable("command.sswaystones.config_format",
                                 formatKey(option.getKey()), option.getValue()), false);
                     }
                     return 1;
                 })).then(literal("reload").executes(context -> {
                     Waystones.configuration.load();
                     context.getSource()
-                            .sendFeedback(() -> Text.translatable("command.sswaystones.config_reload_success"), true);
+                            .sendSuccess(() -> Component.translatable("command.sswaystones.config_reload_success"), true);
                     return 1;
                 })).then(literal("save").executes(context -> {
                     Waystones.configuration.save();
-                    context.getSource().sendFeedback(() -> Text.translatable("command.sswaystones.config_save_success"),
+                    context.getSource().sendSuccess(() -> Component.translatable("command.sswaystones.config_save_success"),
                             false);
                     return 1;
                 })).then(literal("set").then(argument("key", StringArgumentType.word())
@@ -100,7 +103,7 @@ public class WaystonesCommand {
                             if (field == null)
                                 throw new CommandSyntaxException(
                                         CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument(),
-                                        Text.translatable("command.sswaystones.config_not_found"));
+                                        Component.translatable("command.sswaystones.config_not_found"));
                             Configuration.Instance instance = Waystones.configuration.getInstance();
                             field.setAccessible(true);
 
@@ -125,10 +128,10 @@ public class WaystonesCommand {
                             } catch (NumberFormatException e) {
                                 throw new CommandSyntaxException(
                                         CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedInt(),
-                                        Text.translatable("command.sswaystones.config_set_invalid_type"));
+                                        Component.translatable("command.sswaystones.config_set_invalid_type"));
                             }
                             context.getSource()
-                                    .sendFeedback(() -> Text.translatable("command.sswaystones.config_set_success",
+                                    .sendSuccess(() -> Component.translatable("command.sswaystones.config_set_success",
                                             formatKey(key), formatValue(newValue)), true);
                             return 1;
                         }))))
@@ -138,12 +141,12 @@ public class WaystonesCommand {
                             if (field == null)
                                 throw new CommandSyntaxException(
                                         CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument(),
-                                        Text.translatable("command.sswaystones.config_not_found"));
+                                        Component.translatable("command.sswaystones.config_not_found"));
                             Configuration.Instance instance = Waystones.configuration.getInstance();
 
-                            context.getSource().sendFeedback(() -> {
+                            context.getSource().sendSuccess(() -> {
                                 try {
-                                    return Text.translatable("command.sswaystones.config_format", formatKey(key),
+                                    return Component.translatable("command.sswaystones.config_format", formatKey(key),
                                             formatValue(field.get(instance)));
                                 } catch (IllegalAccessException e) {
                                     throw new RuntimeException(e);
@@ -155,14 +158,14 @@ public class WaystonesCommand {
     }
 
     // Returns Map of String -> Description
-    private static Map<String, Text> getConfigOptions() {
+    private static Map<String, Component> getConfigOptions() {
         // I'm not proud of this. I'm so, so sorry.
         Field[] fields = Configuration.Instance.class.getDeclaredFields();
-        Map<String, Text> descriptionMap = new HashMap<>();
+        Map<String, Component> descriptionMap = new HashMap<>();
         for (Field field : fields) {
             SerializedName name = field.getAnnotation(SerializedName.class);
             Description description = field.getAnnotation(Description.class);
-            descriptionMap.put(name.value(), Text.translatable(description.translation()));
+            descriptionMap.put(name.value(), Component.translatable(description.translation()));
         }
         return descriptionMap;
     }
@@ -177,11 +180,11 @@ public class WaystonesCommand {
         return null;
     }
 
-    private static Text formatKey(String key) {
-        return Text.literal(key.toLowerCase()).formatted(Formatting.ITALIC, Formatting.WHITE);
+    private static Component formatKey(String key) {
+        return Component.literal(key.toLowerCase()).withStyle(ChatFormatting.ITALIC, ChatFormatting.WHITE);
     }
 
-    private static Text formatValue(Object value) {
-        return Text.literal(String.valueOf(value)).formatted(Formatting.YELLOW);
+    private static Component formatValue(Object value) {
+        return Component.literal(String.valueOf(value)).withStyle(ChatFormatting.YELLOW);
     }
 }

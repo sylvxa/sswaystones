@@ -8,13 +8,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 
 public class HashUtil {
-    public static String waystoneIdentifier(BlockPos pos, RegistryKey<World> world) {
-        return String.format("<x:%s, y:%s, z:%s, w:%s>", pos.getX(), pos.getY(), pos.getZ(), world.getValue());
+    public static String waystoneIdentifier(BlockPos pos, ResourceKey<Level> world) {
+        return String.format("<x:%s, y:%s, z:%s, w:%s>", pos.getX(), pos.getY(), pos.getZ(), world.identifier());
     }
 
     public static String bytesToHex(byte[] data) {
@@ -25,7 +25,7 @@ public class HashUtil {
         return builder.toString();
     }
 
-    public static String getHash(BlockPos pos, RegistryKey<World> world) {
+    public static String getHash(BlockPos pos, ResourceKey<Level> world) {
         String identifier = waystoneIdentifier(pos, world);
         try {
             return bytesToHex(MessageDigest.getInstance("SHA-256").digest(identifier.getBytes(StandardCharsets.UTF_8)));

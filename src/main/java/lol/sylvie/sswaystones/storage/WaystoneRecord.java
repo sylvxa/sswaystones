@@ -19,31 +19,31 @@ import lol.sylvie.sswaystones.block.WaystoneBlock;
 import lol.sylvie.sswaystones.config.Configuration;
 import lol.sylvie.sswaystones.util.HashUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.particle.DragonBreathParticleEffect;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.scoreboard.Team;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.Vec3i;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.particles.PowerParticleOption;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Uuids;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.Nullable;
 
 public final class WaystoneRecord {
@@ -51,31 +51,31 @@ public final class WaystoneRecord {
     private String ownerName;
     private String waystoneName;
     private final BlockPos pos; // Must be final as the hash is calculated based on pos and world
-    private final RegistryKey<World> world;
+    private final ResourceKey<Level> world;
     private final AccessSettings accessSettings;
     private Item icon;
 
     public static final Codec<WaystoneRecord> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Uuids.CODEC.fieldOf("waystone_owner").forGetter(WaystoneRecord::getOwnerUUID),
+            UUIDUtil.AUTHLIB_CODEC.fieldOf("waystone_owner").forGetter(WaystoneRecord::getOwnerUUID),
             Codec.STRING.fieldOf("waystone_owner_name").forGetter(WaystoneRecord::getOwnerName),
             Codec.STRING.fieldOf("waystone_name").forGetter(WaystoneRecord::getWaystoneName),
             BlockPos.CODEC.fieldOf("position").forGetter(WaystoneRecord::getPos),
-            World.CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
+            Level.RESOURCE_KEY_CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
             AccessSettings.CODEC.optionalFieldOf("access_settings")
                     .forGetter((i) -> Optional.of(i.getAccessSettings())),
-            Registries.ITEM.getCodec().optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
+            BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
             .apply(instance, WaystoneRecord::new));
 
     // Optional fields share the same instance of a default value, so we have to use
     // this weird workaround
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world,
+    private WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, ResourceKey<Level> world,
             Optional<AccessSettings> accessSettings, Item icon) {
         this(owner, ownerName, waystoneName, pos, world,
                 accessSettings.orElseGet(() -> new AccessSettings(false, false, "")), icon);
     }
 
-    public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, RegistryKey<World> world,
+    public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, ResourceKey<Level> world,
             AccessSettings accessSettings, Item icon) {
         this.owner = owner;
         this.ownerName = ownerName;
@@ -86,13 +86,13 @@ public final class WaystoneRecord {
         this.icon = icon == null ? Items.PLAYER_HEAD : icon;
     }
 
-    public void handleTeleport(ServerPlayerEntity player) {
-        World world = player.getEntityWorld();
+    public void handleTeleport(ServerPlayer player) {
+        Level world = player.level();
         MinecraftServer server = world.getServer();
         assert server != null;
 
         // Run on main thread to avoid a race condition for Geyser players
-        if (!server.isOnThread()) {
+        if (!server.isSameThread()) {
             server.execute(() -> handleTeleport(player));
             return;
         }
@@ -103,21 +103,21 @@ public final class WaystoneRecord {
         int requiredXp = getXpCost(player);
         if (requiredXp > 0) {
             if (player.experienceLevel < requiredXp) {
-                player.sendMessage(
-                        Text.translatable("error.sswaystones.not_enough_xp", requiredXp - player.experienceLevel)
-                                .formatted(Formatting.RED),
+                player.displayClientMessage(
+                        Component.translatable("error.sswaystones.not_enough_xp", requiredXp - player.experienceLevel)
+                                .withStyle(ChatFormatting.RED),
                         true);
                 return;
             } else {
-                player.addExperienceLevels(Math.min(-requiredXp, 0)); // Stop negative values from adding xp
+                player.giveExperienceLevels(Math.min(-requiredXp, 0)); // Stop negative values from adding xp
             }
         }
 
         // This may happen if someone has a waystone in a dimension from a mod that is
         // no longer present
-        ServerWorld targetWorld = this.getWorld(server);
+        ServerLevel targetWorld = this.getWorld(server);
         if (targetWorld == null) {
-            player.sendMessage(Text.translatable("error.sswaystones.no_dimension").formatted(Formatting.RED));
+            player.sendSystemMessage(Component.translatable("error.sswaystones.no_dimension").withStyle(ChatFormatting.RED));
             return;
         }
 
@@ -125,26 +125,26 @@ public final class WaystoneRecord {
         BlockPos target = this.getPos();
         if (!(targetWorld.getBlockState(target).getBlock() instanceof WaystoneBlock) && config.removeInvalidWaystones) {
             WaystoneStorage.getServerState(server).destroyWaystone(this);
-            player.sendMessage(Text.translatable("error.sswaystones.invalid_waystone").formatted(Formatting.RED));
+            player.sendSystemMessage(Component.translatable("error.sswaystones.invalid_waystone").withStyle(ChatFormatting.RED));
             return;
         }
 
         if (config.safeTeleport) {
             // Remove any blocks trying to suffocate the player
-            BlockPos head = target.add(0, 1, 0);
+            BlockPos head = target.offset(0, 1, 0);
             BlockState headState = targetWorld.getBlockState(head);
             if (!headState.getCollisionShape(targetWorld, head).isEmpty()) {
-                if (headState.getHardness(targetWorld, head) != -1) {
-                    server.executeSync(() -> targetWorld.breakBlock(head, true));
+                if (headState.getDestroySpeed(targetWorld, head) != -1) {
+                    server.executeIfPossible(() -> targetWorld.destroyBlock(head, true));
                 }
             }
 
             // Make sure there is a platform beneath the waystone
             for (int x = -1; x <= 1; x++) {
                 for (int z = -1; z <= 1; z++) {
-                    BlockPos ground = this.pos.add(x, -1, z);
+                    BlockPos ground = this.pos.offset(x, -1, z);
                     if (targetWorld.getBlockState(ground).isAir()) {
-                        targetWorld.setBlockState(ground, Blocks.COBBLESTONE.getDefaultState());
+                        targetWorld.setBlockAndUpdate(ground, Blocks.COBBLESTONE.defaultBlockState());
                     }
                 }
             }
@@ -156,9 +156,9 @@ public final class WaystoneRecord {
                 new Vec3i(-1, -1, 1));
 
         for (Vec3i checkPos : positionChecks) {
-            BlockPos ground = target.add(checkPos);
-            BlockPos feet = ground.add(0, 1, 0);
-            BlockPos head = feet.add(0, 1, 0);
+            BlockPos ground = target.offset(checkPos);
+            BlockPos feet = ground.offset(0, 1, 0);
+            BlockPos head = feet.offset(0, 1, 0);
 
             if (!targetWorld.getBlockState(ground).getCollisionShape(targetWorld, ground).isEmpty()
                     && targetWorld.getBlockState(feet).getCollisionShape(targetWorld, feet).isEmpty()
@@ -169,35 +169,35 @@ public final class WaystoneRecord {
         }
 
         // Teleport!
-        Vec3d center = target.toBottomCenterPos();
-        player.teleport(targetWorld, center.getX(), center.getY(), center.getZ(), Set.of(), player.getYaw(),
-                player.getPitch(), false);
-        targetWorld.playSound(null, target, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1f);
-        targetWorld.spawnParticles(DragonBreathParticleEffect.of(ParticleTypes.DRAGON_BREATH, 1f), center.getX(),
-                center.getY() + 1f, center.getZ(), 16, 0.5d, 0.5d, 0.5d, 0.1d);
+        Vec3 center = target.getBottomCenter();
+        player.teleportTo(targetWorld, center.x(), center.y(), center.z(), Set.of(), player.getYRot(),
+                player.getXRot(), false);
+        targetWorld.playSound(null, target, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1f, 1f);
+        targetWorld.sendParticles(PowerParticleOption.create(ParticleTypes.DRAGON_BREATH, 1f), center.x(),
+                center.y() + 1f, center.z(), 16, 0.5d, 0.5d, 0.5d, 0.1d);
     }
 
-    public boolean canPlayerEdit(ServerPlayerEntity player) {
-        return this.getOwnerUUID().equals(player.getUuid()) || Permissions.check(player, "sswaystones.manager", 4);
+    public boolean canPlayerEdit(ServerPlayer player) {
+        return this.getOwnerUUID().equals(player.getUUID()) || Permissions.check(player, "sswaystones.manager", 4);
     }
 
-    public int getXpCost(ServerPlayerEntity player) {
+    public int getXpCost(ServerPlayer player) {
         Configuration.Instance config = Waystones.configuration.getInstance();
         if (player.isCreative())
             return 0;
-        return player.getEntityWorld().getRegistryKey().equals(this.getWorldKey())
+        return player.level().dimension().equals(this.getWorldKey())
                 ? config.xpCost
                 : config.crossDimensionXpCost;
     }
 
     public ItemStack getIconOrHead(@Nullable MinecraftServer server) {
         if (icon != null && icon != Items.PLAYER_HEAD)
-            return icon.getDefaultStack();
+            return icon.getDefaultInstance();
 
         // The server has to fetch the player's skin
         GameProfile profile = new GameProfile(this.getOwnerUUID(), this.getOwnerName());
         if (server != null) {
-            MinecraftSessionService service = server.getApiServices().sessionService();
+            MinecraftSessionService service = server.services().sessionService();
             if (service.getTextures(profile) == MinecraftProfileTextures.EMPTY) {
                 ProfileResult fetched = service.fetchProfile(profile.id(), false);
                 if (fetched != null)
@@ -205,8 +205,8 @@ public final class WaystoneRecord {
             }
         }
 
-        ItemStack head = Items.PLAYER_HEAD.getDefaultStack();
-        head.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(profile));
+        ItemStack head = Items.PLAYER_HEAD.getDefaultInstance();
+        head.set(DataComponents.PROFILE, ResolvableProfile.createResolved(profile));
         return head;
     }
 
@@ -219,8 +219,8 @@ public final class WaystoneRecord {
         return ownerName;
     }
 
-    public void setOwner(PlayerEntity player) {
-        this.owner = player.getUuid();
+    public void setOwner(Player player) {
+        this.owner = player.getUUID();
         this.ownerName = player.getGameProfile().name();
     }
 
@@ -237,7 +237,7 @@ public final class WaystoneRecord {
         return pos;
     }
 
-    public RegistryKey<World> getWorldKey() {
+    public ResourceKey<Level> getWorldKey() {
         return world;
     }
 
@@ -270,7 +270,7 @@ public final class WaystoneRecord {
             this.team = team;
         }
 
-        public boolean canPlayerAccess(WaystoneRecord parent, ServerPlayerEntity player) {
+        public boolean canPlayerAccess(WaystoneRecord parent, ServerPlayer player) {
             PlayerData data = WaystoneStorage.getPlayerState(player);
             if (data.discoveredWaystones.contains(parent.getHash()))
                 return true;
@@ -279,7 +279,7 @@ public final class WaystoneRecord {
                 return true;
             if (this.isServerOwned())
                 return true;
-            Team team = player.getScoreboardTeam();
+            PlayerTeam team = player.getTeam();
             if (team != null && team.getName().equals(this.team))
                 return true;
 
@@ -323,11 +323,11 @@ public final class WaystoneRecord {
         return HashUtil.getHash(this);
     }
 
-    public Text getWaystoneText() {
-        return Text.literal(this.getWaystoneName());
+    public Component getWaystoneText() {
+        return Component.literal(this.getWaystoneName());
     }
 
-    public ServerWorld getWorld(MinecraftServer server) {
-        return server.getWorld(this.getWorldKey());
+    public ServerLevel getWorld(MinecraftServer server) {
+        return server.getLevel(this.getWorldKey());
     }
 }
