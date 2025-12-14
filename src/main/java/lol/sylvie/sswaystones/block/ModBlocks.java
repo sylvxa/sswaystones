@@ -37,7 +37,8 @@ public class ModBlocks {
             NETHER_BRICK_WAYSTONE, RED_NETHER_BRICK_WAYSTONE, BLACKSTONE_WAYSTONE, END_STONE_WAYSTONE);
 
     public static final BlockEntityType<WaystoneBlockEntity> WAYSTONE_BLOCK_ENTITY = Registry.register(
-            BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Waystones.MOD_ID, "waystone_block_entity"),
+            BuiltInRegistries.BLOCK_ENTITY_TYPE,
+            Identifier.fromNamespaceAndPath(Waystones.MOD_ID, "waystone_block_entity"),
             FabricBlockEntityTypeBuilder.create(WaystoneBlockEntity::new).addBlocks(WAYSTONES).build());
 
     public static Block register(Block block, Identifier identifier) {

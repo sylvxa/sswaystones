@@ -124,7 +124,8 @@ public class WaystoneBlock extends BaseEntityBlock implements PolymerBlock {
 
     // Open GUI
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+            BlockHitResult hit) {
         if (player instanceof ServerPlayer serverPlayer) {
             MinecraftServer server = serverPlayer.level().getServer();
             WaystoneStorage storage = WaystoneStorage.getServerState(server);

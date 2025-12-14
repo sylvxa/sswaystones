@@ -17,14 +17,12 @@ import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.world.item.Items;
 
 public class WaystoneRecipeGenerator extends FabricRecipeProvider {
-    public WaystoneRecipeGenerator(FabricDataOutput output,
-            CompletableFuture<HolderLookup.Provider> registriesFuture) {
+    public WaystoneRecipeGenerator(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
     @Override
-    protected RecipeProvider createRecipeProvider(HolderLookup.Provider wrapperLookup,
-            RecipeOutput recipeExporter) {
+    protected RecipeProvider createRecipeProvider(HolderLookup.Provider wrapperLookup, RecipeOutput recipeExporter) {
         return new RecipeProvider(wrapperLookup, recipeExporter) {
             @Override
             public void buildRecipes() {
@@ -32,8 +30,8 @@ public class WaystoneRecipeGenerator extends FabricRecipeProvider {
                     WaystoneStyle style = item.getStyle();
                     shaped(RecipeCategory.TRANSPORTATION, item, 1).pattern(" E ").pattern("RWR").pattern("BBB")
                             .define('E', Items.ENDER_EYE).define('R', Items.REDSTONE).define('W', style.getWall())
-                            .define('B', style.getBase()).group("waystone")
-                            .unlockedBy(getHasName(item), has(item)).save(output);
+                            .define('B', style.getBase()).group("waystone").unlockedBy(getHasName(item), has(item))
+                            .save(output);
                 }
             }
         };

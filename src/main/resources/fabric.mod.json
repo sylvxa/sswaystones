@@ -36,8 +36,7 @@
   "accessWidener" : "sswaystones.accesswidener",
   "depends": {
     "fabricloader": ">=${loader_version}",
-    "fabric": "*",
-    "minecraft": ">=${minecraft_version}",
-    "fabric-permissions-api-v0": ">=${fabric_permissions_version}"
+    "fabric-api": "*",
+    "minecraft": ">=${minecraft_version}"
   }
 }

@@ -63,12 +63,13 @@ public class ModItems {
 
     public static WaystoneBlockItem registerWaystoneStyle(WaystoneBlock block) {
         WaystoneStyle style = block.getStyle();
-        Item.Properties settings = new Item.Properties().useBlockDescriptionPrefix()
-                .setId(style.getItemRegistryKey()).rarity(Rarity.RARE);
+        Item.Properties settings = new Item.Properties().useBlockDescriptionPrefix().setId(style.getItemRegistryKey())
+                .rarity(Rarity.RARE);
         return (WaystoneBlockItem) register(new WaystoneBlockItem(block, settings), style.getId());
     }
 
     public static void initialize() {
-        PolymerItemGroupUtils.registerPolymerItemGroup(Identifier.fromNamespaceAndPath(Waystones.MOD_ID, "item_group"), ITEM_GROUP);
+        PolymerItemGroupUtils.registerPolymerItemGroup(Identifier.fromNamespaceAndPath(Waystones.MOD_ID, "item_group"),
+                ITEM_GROUP);
     }
 }

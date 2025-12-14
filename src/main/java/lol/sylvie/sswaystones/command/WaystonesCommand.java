@@ -4,6 +4,9 @@
 */
 package lol.sylvie.sswaystones.command;
 
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
+
 import com.google.gson.annotations.SerializedName;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -27,20 +30,19 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 
-import static net.minecraft.commands.Commands.argument;
-import static net.minecraft.commands.Commands.literal;
-
-
 public class WaystonesCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("sswaystones")
                 .requires(source -> Permissions.check(source, "sswaystones.command", false)).executes(context -> {
-                    String version = FabricLoader.getInstance().getModContainer(Waystones.MOD_ID).orElseThrow().getMetadata().getVersion().getFriendlyString();
-                    context.getSource().sendSuccess(() -> Component.literal("sswaystones " + version + ", made with <3 by sylvie"), false);
+                    String version = FabricLoader.getInstance().getModContainer(Waystones.MOD_ID).orElseThrow()
+                            .getMetadata().getVersion().getFriendlyString();
+                    context.getSource().sendSuccess(
+                            () -> Component.literal("sswaystones " + version + ", made with <3 by sylvie"), false);
                     return 1;
                 }).then(literal("list").executes(context -> {
-                    context.getSource().sendSuccess(() -> Component.translatable("command.sswaystones.list_header"), false);
+                    context.getSource().sendSuccess(() -> Component.translatable("command.sswaystones.list_header"),
+                            false);
 
                     WaystoneStorage storage = WaystoneStorage.getServerState(context.getSource().getServer());
                     for (Map.Entry<String, WaystoneRecord> waystone : storage.waystones.entrySet()) {
@@ -79,22 +81,23 @@ public class WaystonesCommand {
 
                     return 1;
                 }))).then(literal("config").then(literal("help").executes(context -> {
-                    context.getSource().sendSuccess(() -> Component.translatable("command.sswaystones.config_help_header"),
-                            false);
+                    context.getSource()
+                            .sendSuccess(() -> Component.translatable("command.sswaystones.config_help_header"), false);
                     for (Map.Entry<String, Component> option : getConfigOptions().entrySet()) {
-                        context.getSource().sendSuccess(() -> Component.translatable("command.sswaystones.config_format",
-                                formatKey(option.getKey()), option.getValue()), false);
+                        context.getSource()
+                                .sendSuccess(() -> Component.translatable("command.sswaystones.config_format",
+                                        formatKey(option.getKey()), option.getValue()), false);
                     }
                     return 1;
                 })).then(literal("reload").executes(context -> {
                     Waystones.configuration.load();
-                    context.getSource()
-                            .sendSuccess(() -> Component.translatable("command.sswaystones.config_reload_success"), true);
+                    context.getSource().sendSuccess(
+                            () -> Component.translatable("command.sswaystones.config_reload_success"), true);
                     return 1;
                 })).then(literal("save").executes(context -> {
                     Waystones.configuration.save();
-                    context.getSource().sendSuccess(() -> Component.translatable("command.sswaystones.config_save_success"),
-                            false);
+                    context.getSource().sendSuccess(
+                            () -> Component.translatable("command.sswaystones.config_save_success"), false);
                     return 1;
                 })).then(literal("set").then(argument("key", StringArgumentType.word())
                         .then(argument("value", StringArgumentType.greedyString()).executes(context -> {

@@ -20,8 +20,7 @@ public class WaystoneEnglishProvider extends FabricLanguageProvider {
     }
 
     @Override
-    public void generateTranslations(HolderLookup.Provider wrapperLookup,
-            TranslationBuilder translationBuilder) {
+    public void generateTranslations(HolderLookup.Provider wrapperLookup, TranslationBuilder translationBuilder) {
         for (WaystoneBlock block : ModBlocks.WAYSTONES) {
             WaystoneStyle style = block.getStyle();
             if (style == WaystoneStyle.STONE)

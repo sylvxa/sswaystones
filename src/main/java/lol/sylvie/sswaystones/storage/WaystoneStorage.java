@@ -38,7 +38,8 @@ public class WaystoneStorage extends SavedData {
     public static final Codec<WaystoneStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.unboundedMap(Codec.STRING, WaystoneRecord.CODEC).fieldOf("waystones")
                     .forGetter(WaystoneStorage::getWaystones),
-            Codec.unboundedMap(UUIDUtil.AUTHLIB_CODEC, PlayerData.CODEC).fieldOf("players").forGetter(WaystoneStorage::getPlayers))
+            Codec.unboundedMap(UUIDUtil.AUTHLIB_CODEC, PlayerData.CODEC).fieldOf("players")
+                    .forGetter(WaystoneStorage::getPlayers))
             .apply(instance, WaystoneStorage::new));
 
     private static final SavedDataType<WaystoneStorage> TYPE = new SavedDataType<>(Waystones.MOD_ID,
@@ -86,7 +87,8 @@ public class WaystoneStorage extends SavedData {
     // Create a waystone
     public WaystoneRecord createWaystone(BlockPos pos, Level world, ServerPlayer player) {
         if (!Permissions.check(player, "sswaystones.create.place", true)) {
-            player.sendSystemMessage(Component.translatable("error.sswaystones.no_create_permission").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(
+                    Component.translatable("error.sswaystones.no_create_permission").withStyle(ChatFormatting.RED));
             return null;
         }
 
@@ -96,7 +98,8 @@ public class WaystoneStorage extends SavedData {
                 .count();
         if (waystoneLimit != 0 && waystoneCount >= waystoneLimit
                 && !Permissions.check(player, "sswaystones.manager.bypass_limit", 4)) {
-            player.sendSystemMessage(Component.translatable("error.sswaystones.reached_limit").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(
+                    Component.translatable("error.sswaystones.reached_limit").withStyle(ChatFormatting.RED));
             return null;
         }
 

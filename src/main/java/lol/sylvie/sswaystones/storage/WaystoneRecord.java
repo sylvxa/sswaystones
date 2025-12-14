@@ -55,15 +55,16 @@ public final class WaystoneRecord {
     private final AccessSettings accessSettings;
     private Item icon;
 
-    public static final Codec<WaystoneRecord> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            UUIDUtil.AUTHLIB_CODEC.fieldOf("waystone_owner").forGetter(WaystoneRecord::getOwnerUUID),
-            Codec.STRING.fieldOf("waystone_owner_name").forGetter(WaystoneRecord::getOwnerName),
-            Codec.STRING.fieldOf("waystone_name").forGetter(WaystoneRecord::getWaystoneName),
-            BlockPos.CODEC.fieldOf("position").forGetter(WaystoneRecord::getPos),
-            Level.RESOURCE_KEY_CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
-            AccessSettings.CODEC.optionalFieldOf("access_settings")
-                    .forGetter((i) -> Optional.of(i.getAccessSettings())),
-            BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("icon", Items.PLAYER_HEAD).forGetter(WaystoneRecord::getIcon))
+    public static final Codec<WaystoneRecord> CODEC = RecordCodecBuilder.create(instance -> instance
+            .group(UUIDUtil.AUTHLIB_CODEC.fieldOf("waystone_owner").forGetter(WaystoneRecord::getOwnerUUID),
+                    Codec.STRING.fieldOf("waystone_owner_name").forGetter(WaystoneRecord::getOwnerName),
+                    Codec.STRING.fieldOf("waystone_name").forGetter(WaystoneRecord::getWaystoneName),
+                    BlockPos.CODEC.fieldOf("position").forGetter(WaystoneRecord::getPos),
+                    Level.RESOURCE_KEY_CODEC.fieldOf("world").forGetter(WaystoneRecord::getWorldKey),
+                    AccessSettings.CODEC.optionalFieldOf("access_settings")
+                            .forGetter((i) -> Optional.of(i.getAccessSettings())),
+                    BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("icon", Items.PLAYER_HEAD)
+                            .forGetter(WaystoneRecord::getIcon))
             .apply(instance, WaystoneRecord::new));
 
     // Optional fields share the same instance of a default value, so we have to use
@@ -117,7 +118,8 @@ public final class WaystoneRecord {
         // no longer present
         ServerLevel targetWorld = this.getWorld(server);
         if (targetWorld == null) {
-            player.sendSystemMessage(Component.translatable("error.sswaystones.no_dimension").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(
+                    Component.translatable("error.sswaystones.no_dimension").withStyle(ChatFormatting.RED));
             return;
         }
 
@@ -125,7 +127,8 @@ public final class WaystoneRecord {
         BlockPos target = this.getPos();
         if (!(targetWorld.getBlockState(target).getBlock() instanceof WaystoneBlock) && config.removeInvalidWaystones) {
             WaystoneStorage.getServerState(server).destroyWaystone(this);
-            player.sendSystemMessage(Component.translatable("error.sswaystones.invalid_waystone").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(
+                    Component.translatable("error.sswaystones.invalid_waystone").withStyle(ChatFormatting.RED));
             return;
         }
 
@@ -170,8 +173,8 @@ public final class WaystoneRecord {
 
         // Teleport!
         Vec3 center = target.getBottomCenter();
-        player.teleportTo(targetWorld, center.x(), center.y(), center.z(), Set.of(), player.getYRot(),
-                player.getXRot(), false);
+        player.teleportTo(targetWorld, center.x(), center.y(), center.z(), Set.of(), player.getYRot(), player.getXRot(),
+                false);
         targetWorld.playSound(null, target, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1f, 1f);
         targetWorld.sendParticles(PowerParticleOption.create(ParticleTypes.DRAGON_BREATH, 1f), center.x(),
                 center.y() + 1f, center.z(), 16, 0.5d, 0.5d, 0.5d, 0.1d);
@@ -185,9 +188,7 @@ public final class WaystoneRecord {
         Configuration.Instance config = Waystones.configuration.getInstance();
         if (player.isCreative())
             return 0;
-        return player.level().dimension().equals(this.getWorldKey())
-                ? config.xpCost
-                : config.crossDimensionXpCost;
+        return player.level().dimension().equals(this.getWorldKey()) ? config.xpCost : config.crossDimensionXpCost;
     }
 
     public ItemStack getIconOrHead(@Nullable MinecraftServer server) {
