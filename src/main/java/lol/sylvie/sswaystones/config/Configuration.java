@@ -45,6 +45,7 @@ public class Configuration {
                 instance = loaded;
 
             NameGenerator.reloadFiles();
+        } catch (FileNotFoundException ignored) {
         } catch (IOException exception) {
             Waystones.LOGGER.warn("Could not load configuration from disk!", exception);
         } catch (JsonSyntaxException exception) {

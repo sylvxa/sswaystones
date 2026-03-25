@@ -7,11 +7,15 @@
     "JigsawPlacerMixin",
     "LevelChunkMixin",
     "PlayerMixin",
-    "StructureTemplatePoolAccessor"
+    "StructureTemplatePoolAccessor",
+    "compat.DataFixersMixin"
   ],
   "client": [
   ],
   "injectors": {
     "defaultRequire": 1
+  },
+  "mixinextras": {
+    "minVersion": "0.5.0"
   }
 }

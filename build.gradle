@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.14-SNAPSHOT'
+	id 'net.fabricmc.fabric-loom' version '1.15-SNAPSHOT'
 	id 'maven-publish'
 	id "com.diffplug.spotless" version "7.0.0.BETA1"
 }
@@ -22,28 +22,27 @@ repositories {
 }
 
 loom {
-	accessWidenerPath = file("src/main/resources/sswaystones.accesswidener")
+	accessWidenerPath = file("src/main/resources/sswaystones.classtweaker")
 }
 
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.officialMojangMappings()
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-	modImplementation include("eu.pb4:polymer-core:${project.polymer_version}")
-	modImplementation include("eu.pb4:polymer-virtual-entity:${project.polymer_version}")
+	implementation include("eu.pb4:polymer-core:${project.polymer_version}")
+	implementation include("eu.pb4:polymer-virtual-entity:${project.polymer_version}")
 
-	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
+	implementation include("eu.pb4:sgui:${project.sgui_version}")
 
-	modImplementation include("xyz.nucleoid:server-translations-api:${project.server_translations_version}")
+	implementation include("xyz.nucleoid:server-translations-api:${project.server_translations_version}")
 
 	compileOnly("org.geysermc.floodgate:api:${project.floodgate_version}")
 
-	include(modImplementation("me.lucko:fabric-permissions-api:${project.fabric_permissions_version}"))
+	include(implementation("me.lucko:fabric-permissions-api:${project.fabric_permissions_version}"))
 }
 
 processResources {
@@ -59,7 +58,7 @@ processResources {
 	}
 }
 
-def targetJavaVersion = 21
+def targetJavaVersion = 25
 tasks.withType(JavaCompile).configureEach {
 	// ensure that the encoding is set to UTF-8, no matter what the system default is
 	// this fixes some edge cases with special characters not displaying correctly

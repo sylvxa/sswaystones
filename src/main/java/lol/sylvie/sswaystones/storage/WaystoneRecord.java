@@ -106,10 +106,9 @@ public final class WaystoneRecord {
         int requiredXp = getXpCost(player);
         if (requiredXp > 0) {
             if (player.experienceLevel < requiredXp) {
-                player.displayClientMessage(
+                player.sendOverlayMessage(
                         Component.translatable("error.sswaystones.not_enough_xp", requiredXp - player.experienceLevel)
-                                .withStyle(ChatFormatting.RED),
-                        true);
+                                .withStyle(ChatFormatting.RED));
                 return;
             } else {
                 player.giveExperienceLevels(Math.min(-requiredXp, 0)); // Stop negative values from adding xp
@@ -183,7 +182,8 @@ public final class WaystoneRecord {
     }
 
     public boolean canPlayerEdit(ServerPlayer player) {
-        return this.getOwnerUUID().equals(player.getUUID()) || Permissions.check(player, "sswaystones.manager", 4);
+        return this.getOwnerUUID().equals(player.getUUID())
+                || Permissions.check(player, "sswaystones.manager", PermissionLevel.ADMINS);
     }
 
     public int getXpCost(ServerPlayer player) {
@@ -273,6 +273,10 @@ public final class WaystoneRecord {
             this.team = team;
         }
 
+        public boolean isEffectivelyGlobal() {
+            return this.isGlobal() || this.isServerOwned();
+        }
+
         public boolean canPlayerAccess(WaystoneRecord parent, ServerPlayer player) {
             if (ViewerUtil.mayAccessAll.contains(player.getUUID())
                     && Permissions.check(player, "sswaystones.showall", PermissionLevel.ADMINS))
@@ -282,7 +286,7 @@ public final class WaystoneRecord {
             if (data.discoveredWaystones.contains(parent.getHash()))
                 return true;
 
-            if (this.isGlobal() || this.isServerOwned())
+            if (this.isEffectivelyGlobal())
                 return true;
 
             PlayerTeam team = player.getTeam();

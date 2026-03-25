@@ -9,6 +9,8 @@ import eu.pb4.polymer.core.api.item.SimplePolymerItem;
 import java.util.List;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.gui.ViewerUtil;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -23,7 +25,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.Level;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 public class PortableWaystoneItem extends SimplePolymerItem {
     public static final Identifier ID = Waystones.id("portable_waystone");
@@ -42,8 +43,9 @@ public class PortableWaystoneItem extends SimplePolymerItem {
     }
 
     @Override
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipFlag tooltipType, PacketContext context) {
-        ItemStack out = PolymerItemUtils.createItemStack(itemStack, tooltipType, context);
+    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipFlag tooltipType, PacketContext context,
+            HolderLookup.Provider lookup) {
+        ItemStack out = PolymerItemUtils.createItemStack(itemStack, tooltipType, context, lookup);
         out.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
         out.set(DataComponents.CUSTOM_MODEL_DATA,
                 new CustomModelData(List.of(), List.of(), List.of(ID.toString()), List.of()));

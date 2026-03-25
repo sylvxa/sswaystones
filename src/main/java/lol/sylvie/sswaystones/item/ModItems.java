@@ -4,7 +4,7 @@
 */
 package lol.sylvie.sswaystones.item;
 
-import eu.pb4.polymer.core.api.item.PolymerItemGroupUtils;
+import eu.pb4.polymer.core.api.item.PolymerCreativeModeTabUtils;
 import java.util.List;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.block.ModBlocks;
@@ -48,7 +48,7 @@ public class ModItems {
                     new Item.Properties().setId(PortableWaystoneItem.KEY).rarity(Rarity.EPIC).stacksTo(1)),
             PortableWaystoneItem.ID);
 
-    public static final CreativeModeTab ITEM_GROUP = PolymerItemGroupUtils.builder()
+    public static final CreativeModeTab ITEM_GROUP = PolymerCreativeModeTabUtils.builder()
             .title(Component.translatable("itemGroup.sswaystones.item_group"))
             .icon(Items.STONE_BRICK_WALL::getDefaultInstance).displayItems((context, entries) -> {
                 for (Item item : WAYSTONES) {
@@ -69,7 +69,6 @@ public class ModItems {
     }
 
     public static void initialize() {
-        PolymerItemGroupUtils.registerPolymerItemGroup(Identifier.fromNamespaceAndPath(Waystones.MOD_ID, "item_group"),
-                ITEM_GROUP);
+        PolymerCreativeModeTabUtils.registerPolymerCreativeModeTab(Waystones.id("item_group"), ITEM_GROUP);
     }
 }

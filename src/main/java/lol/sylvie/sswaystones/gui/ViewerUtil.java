@@ -20,8 +20,8 @@ public class ViewerUtil {
 
     public static void openGui(ServerPlayer player, @Nullable WaystoneRecord record) {
         if (Waystones.isInCombat(player)) {
-            player.displayClientMessage(
-                    Component.translatable("error.sswaystones.combat_cooldown").withStyle(ChatFormatting.RED), true);
+            player.sendOverlayMessage(
+                    Component.translatable("error.sswaystones.combat_cooldown").withStyle(ChatFormatting.RED));
             return;
         }
 

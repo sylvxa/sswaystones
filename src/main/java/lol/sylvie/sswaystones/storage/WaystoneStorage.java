@@ -16,11 +16,12 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.storage.SavedDataStorage;
 
 public class WaystoneStorage extends SavedData {
     public HashMap<String, WaystoneRecord> waystones;
@@ -42,7 +43,7 @@ public class WaystoneStorage extends SavedData {
                     .forGetter(WaystoneStorage::getPlayers))
             .apply(instance, WaystoneStorage::new));
 
-    private static final SavedDataType<WaystoneStorage> TYPE = new SavedDataType<>(Waystones.MOD_ID,
+    private static final SavedDataType<WaystoneStorage> TYPE = new SavedDataType<>(Waystones.id("waystones"),
             WaystoneStorage::new, CODEC, null);
 
     public Map<String, WaystoneRecord> getWaystones() {
@@ -54,8 +55,7 @@ public class WaystoneStorage extends SavedData {
     }
 
     public static WaystoneStorage getServerState(MinecraftServer server) {
-        DimensionDataStorage persistentStateManager = Objects.requireNonNull(server.getLevel(Level.OVERWORLD))
-                .getDataStorage();
+        SavedDataStorage persistentStateManager = server.getDataStorage();
         WaystoneStorage state = persistentStateManager.computeIfAbsent(TYPE);
 
         state.setDirty();
@@ -97,7 +97,7 @@ public class WaystoneStorage extends SavedData {
                 .filter(w -> w.getOwnerUUID().equals(player.getUUID()) && !w.getAccessSettings().isServerOwned())
                 .count();
         if (waystoneLimit != 0 && waystoneCount >= waystoneLimit
-                && !Permissions.check(player, "sswaystones.manager.bypass_limit", 4)) {
+                && !Permissions.check(player, "sswaystones.manager.bypass_limit", PermissionLevel.ADMINS)) {
             player.sendSystemMessage(
                     Component.translatable("error.sswaystones.reached_limit").withStyle(ChatFormatting.RED));
             return null;

@@ -34,6 +34,7 @@
   "gui.sswaystones.toggle_global": "Global",
   "gui.sswaystones.toggle_team": "Team-accessible",
   "gui.sswaystones.toggle_server": "Server-Owned",
+  "gui.sswaystones.forget_waystone": "Forget Waystone? (%s)",
   "command.sswaystones.waystone_not_found": "That waystone does not exist!",
   "command.sswaystones.waystone_removed_successfully": "Waystone was removed!",
   "command.sswaystones.list_header": "§b§eList of Waystones:",

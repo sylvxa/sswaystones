@@ -6,6 +6,7 @@ package lol.sylvie.sswaystones.gui.compat;
 
 import java.util.List;
 import java.util.function.Consumer;
+import lol.sylvie.sswaystones.storage.PlayerData;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.NameGenerator;
@@ -27,6 +28,17 @@ public class BedrockViewerGui {
         sendForm.accept(form);
     }
 
+    private static void addRecordButton(SimpleForm.Builder builder, WaystoneRecord record) {
+        boolean server = record.getAccessSettings().isServerOwned();
+        FormImage.Type type = server ? FormImage.Type.PATH : FormImage.Type.URL;
+        String image = server
+                ? "textures/ui/filledStar.png"
+                : AVATAR_API.replace("%s", record.getOwnerUUID().toString());
+
+        ButtonComponent component = ButtonComponent.of(record.getWaystoneName(), type, image);
+        builder.button(component);
+    }
+
     public static SimpleForm getViewerForm(ServerPlayer player, @Nullable WaystoneRecord waystone,
             Consumer<Form> sendForm) {
         String title = "Waystones";
@@ -40,19 +52,14 @@ public class BedrockViewerGui {
         List<WaystoneRecord> accessible = storage.getAccessibleWaystones(player, waystone);
 
         for (WaystoneRecord record : accessible) {
-            boolean server = record.getAccessSettings().isServerOwned();
-            FormImage.Type type = server ? FormImage.Type.PATH : FormImage.Type.URL;
-            String image = server
-                    ? "textures/ui/filledStar.png"
-                    : AVATAR_API.replace("%s", record.getOwnerUUID().toString());
-
-            ButtonComponent component = ButtonComponent.of(record.getWaystoneName(), type, image);
-            builder.button(component);
+            addRecordButton(builder, record);
         }
 
         boolean showSettingsButton = waystone != null && waystone.canPlayerEdit(player);
         if (showSettingsButton)
             builder.button("Settings", FormImage.Type.PATH, "textures/gui/newgui/anvil-hammer.png");
+
+        builder.button("Forget Waystones", FormImage.Type.PATH, "textures/ui/icon_trash.png");
 
         builder.validResultHandler(response -> {
             int selectedIndex = response.clickedButtonId();
@@ -66,6 +73,40 @@ public class BedrockViewerGui {
                 CustomForm form = getSettingsForm(player, waystone);
                 sendForm.accept(form);
             }
+
+            if (selectedIndex == accessible.size() + (showSettingsButton ? 1 : 0)) {
+                SimpleForm form = getDeleteForm(player, waystone, sendForm);
+                sendForm.accept(form);
+            }
+        });
+
+        return builder.build();
+    }
+
+    public static SimpleForm getDeleteForm(ServerPlayer player, @Nullable WaystoneRecord waystone,
+            Consumer<Form> sendForm) {
+        SimpleForm.Builder builder = SimpleForm.builder().title("Forget Waystone");
+        WaystoneStorage storage = WaystoneStorage.getServerState(player.level().getServer());
+        PlayerData data = WaystoneStorage.getPlayerState(player);
+        List<WaystoneRecord> forgettable = storage.getAccessibleWaystones(player, waystone).stream()
+                .filter(record -> record != waystone && !record.getAccessSettings().isEffectivelyGlobal()
+                        && data.discoveredWaystones.contains(record.getHash()))
+                .toList();
+
+        for (WaystoneRecord record : forgettable) {
+            addRecordButton(builder, record);
+        }
+
+        builder.button("Back", FormImage.Type.PATH, "textures/ui/cancel.png");
+
+        builder.validResultHandler(response -> {
+            int selectedIndex = response.clickedButtonId();
+            if (selectedIndex < forgettable.size()) {
+                WaystoneRecord selectedWaystone = forgettable.get(selectedIndex);
+                data.discoveredWaystones.remove(selectedWaystone.getHash());
+            }
+
+            openGui(player, waystone, sendForm);
         });
 
         return builder.build();

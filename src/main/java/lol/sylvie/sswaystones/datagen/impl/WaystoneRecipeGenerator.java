@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import lol.sylvie.sswaystones.block.WaystoneStyle;
 import lol.sylvie.sswaystones.item.ModItems;
 import lol.sylvie.sswaystones.item.WaystoneBlockItem;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.recipes.RecipeCategory;
@@ -17,7 +17,7 @@ import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.world.item.Items;
 
 public class WaystoneRecipeGenerator extends FabricRecipeProvider {
-    public WaystoneRecipeGenerator(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+    public WaystoneRecipeGenerator(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 

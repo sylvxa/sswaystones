@@ -33,7 +33,7 @@
   "mixins": [
     "sswaystones.mixins.json"
   ],
-  "accessWidener" : "sswaystones.accesswidener",
+  "accessWidener" : "sswaystones.classtweaker",
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",

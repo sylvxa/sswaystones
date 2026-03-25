@@ -9,13 +9,14 @@ import eu.pb4.polymer.core.api.item.PolymerItemUtils;
 import java.util.List;
 import lol.sylvie.sswaystones.block.WaystoneBlock;
 import lol.sylvie.sswaystones.block.WaystoneStyle;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomModelData;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 public class WaystoneBlockItem extends BlockItem implements PolymerItem {
     private final WaystoneStyle style;
@@ -35,8 +36,9 @@ public class WaystoneBlockItem extends BlockItem implements PolymerItem {
     }
 
     @Override
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipFlag tooltipType, PacketContext context) {
-        ItemStack out = PolymerItemUtils.createItemStack(itemStack, tooltipType, context);
+    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipFlag tooltipType, PacketContext context,
+            HolderLookup.Provider lookup) {
+        ItemStack out = PolymerItemUtils.createItemStack(itemStack, tooltipType, context, lookup);
         out.set(DataComponents.ITEM_MODEL, style.getWallId());
         out.set(DataComponents.CUSTOM_MODEL_DATA,
                 new CustomModelData(List.of(), List.of(), List.of(style.getId().toString()), List.of()));
