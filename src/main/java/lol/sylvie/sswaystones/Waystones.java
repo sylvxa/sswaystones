@@ -36,7 +36,7 @@ public class Waystones implements ModInitializer {
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> configuration.save()));
 
-        LOGGER.info("{} is made with <3 by sylvie", MOD_ID);
+        LOGGER.info("{} is made with <3 by sylvie                        and hero brian", MOD_ID);
         ModBlocks.initialize();
         ModItems.initialize();
 

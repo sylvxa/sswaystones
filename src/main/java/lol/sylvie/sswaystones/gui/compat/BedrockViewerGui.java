@@ -134,6 +134,11 @@ public class BedrockViewerGui {
             builder.toggle("Server-Owned", accessSettings.isServerOwned());
         }
 
+        boolean hideNameAvailable = Permissions.check(player, "sswaystones.create.hidename", true);
+        if (hideNameAvailable) {
+            builder.toggle("Hide Name", accessSettings.isGlobal());
+        }
+
         builder.validResultHandler(response -> {
             String name = response.asInput();
             if (name == null)
@@ -160,6 +165,11 @@ public class BedrockViewerGui {
             if (serverAvailable) {
                 boolean server = response.asToggle(index);
                 accessSettings.setServerOwned(server);
+            }
+
+            if (hideNameAvailable) {
+                boolean hideName = response.asToggle(index);
+                accessSettings.setNameHidden(hideName);
             }
 
             waystone.setWaystoneName(name);
