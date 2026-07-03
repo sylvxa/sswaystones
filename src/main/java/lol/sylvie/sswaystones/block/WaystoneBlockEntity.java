@@ -53,7 +53,13 @@ public class WaystoneBlockEntity extends BlockEntity {
     public static void tick(Level world, WaystoneBlockEntity waystoneEntity) {
         WaystoneRecord record = waystoneEntity.getThisWaystone(world);
         boolean waystoneOwned = record != null;
-        boolean nameHidden = record.getAccessSettings().isNameHidden();
+        boolean nameHidden;
+        if (waystoneOwned) {
+            nameHidden = record.getAccessSettings().isNameHidden();
+        } else {
+            nameHidden = false;
+        }
+
         boolean shouldCreateName = record != null && waystoneEntity.nameDisplay == null && !nameHidden;
         // Create the display itself
         if ((waystoneEntity.eyeDisplay == null || shouldCreateName
@@ -140,8 +146,12 @@ public class WaystoneBlockEntity extends BlockEntity {
 
         WaystoneRecord record = getThisWaystone(world);
         boolean exists = record != null;
-        assert record != null;
-        WaystoneRecord.AccessSettings accessSettings = record.getAccessSettings();
+        boolean nameHidden;
+        if (exists) {
+            nameHidden = record.getAccessSettings().isNameHidden();
+        } else {
+            nameHidden = false;
+        }
         // Eye display
         ItemStack glowingEnderPearl = Items.ENDER_PEARL.getDefaultInstance();
         glowingEnderPearl.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
@@ -155,7 +165,7 @@ public class WaystoneBlockEntity extends BlockEntity {
         holder.addElement(eyeDisplay);
 
         // Waystone name display
-        if (!accessSettings.isNameHidden()) {
+        if (exists && !nameHidden) {
             nameDisplay = new TextDisplayElement();
 
             nameDisplay.setText(record.getWaystoneText());
