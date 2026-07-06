@@ -185,7 +185,7 @@ public final class WaystoneRecord {
             }
         }
         // Teleport!
-        Vec3 center = Vec3.atBottomCenterOf((Vec3i) target);
+        Vec3 center = Vec3.atBottomCenterOf(target);
         player.teleportTo(targetWorld, center.x(), center.y(), center.z(), Set.of(), player.getYRot(), player.getXRot(),
                 false);
         targetWorld.playSound(null, target, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1f, 1f);
