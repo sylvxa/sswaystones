@@ -14,12 +14,10 @@ import lol.sylvie.sswaystones.storage.WaystoneRecord;
 import lol.sylvie.sswaystones.storage.WaystoneStorage;
 import lol.sylvie.sswaystones.util.HashUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -92,7 +90,7 @@ public class WaystoneBlockEntity extends BlockEntity {
                 MutableComponent displayName = record.getWaystoneText().copy();
                 if (color != null)
                     displayName.withColor(color.textColor());
-                waystoneEntity.nameDisplay.setText((Component) displayName);
+                waystoneEntity.nameDisplay.setText((MutableComponent) displayName);
 
                 // Bob up and down
                 double y = (Math.sin((double) System.currentTimeMillis() / 1000) / 32) + 1.55d;
@@ -100,14 +98,13 @@ public class WaystoneBlockEntity extends BlockEntity {
             }
         }
         // Particles
-        if (RANDOM.nextInt(0, waystoneOwned ? 20 : 10) == 0 && world instanceof ServerLevel) {
-            ServerLevel serverWorld = (ServerLevel) world;
-            Vec3 pos = Vec3.atBottomCenterOf((Vec3i) waystoneEntity.getBlockPos()).add(0.0D, 1.0D, 0.0D);
-            boolean noTeam = (color == null);
-            ParticleOptions options = noTeam
-                    ? (ParticleOptions) ParticleTypes.PORTAL
-                    : (ParticleOptions) new DustParticleOptions(color.rgb(), 1.0F);
-            serverWorld.sendParticles(options, pos.x(), pos.y(), pos.z(), 8, 0.1D, 0.1D, 0.1D, 0.1D);
+        if (RANDOM.nextInt(0, waystoneOwned ? 20 : 10) == 0 && world instanceof ServerLevel serverWorld) {
+            Vec3 pos = Vec3.atBottomCenterOf(waystoneEntity.getBlockPos()).add(0, 1, 0);
+
+            boolean noTeam = color == null;
+            ParticleOptions options = noTeam ? ParticleTypes.PORTAL : new DustParticleOptions(color.rgb(), 1f);
+
+            serverWorld.sendParticles(options, pos.x(), pos.y(), pos.z(), 8, 0.1d, 0.1d, 0.1d, 0.1d);
         }
     }
 
