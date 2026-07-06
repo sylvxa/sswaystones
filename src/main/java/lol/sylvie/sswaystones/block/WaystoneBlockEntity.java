@@ -8,7 +8,6 @@ import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
-import java.awt.*;
 import java.util.Random;
 import lol.sylvie.sswaystones.Waystones;
 import lol.sylvie.sswaystones.storage.WaystoneRecord;
@@ -38,6 +37,7 @@ public class WaystoneBlockEntity extends BlockEntity {
     private static final Random RANDOM = new Random();
     private final ElementHolder holder = new ElementHolder();
     private ChunkAttachment attachment;
+    private boolean lastTickNameHidden = false;
 
     public TextDisplayElement nameDisplay = null;
     public ItemDisplayElement eyeDisplay = null;
@@ -51,12 +51,20 @@ public class WaystoneBlockEntity extends BlockEntity {
     public static void tick(Level world, WaystoneBlockEntity waystoneEntity) {
         WaystoneRecord record = waystoneEntity.getThisWaystone(world);
         boolean waystoneOwned = record != null;
-        boolean shouldCreateName = record != null && waystoneEntity.nameDisplay == null;
+        boolean nameHidden;
+        if (waystoneOwned) {
+            nameHidden = record.getAccessSettings().isNameHidden();
+        } else {
+            nameHidden = false;
+        }
 
+        boolean shouldCreateName = record != null && waystoneEntity.nameDisplay == null && !nameHidden;
         // Create the display itself
-        if (waystoneEntity.eyeDisplay == null || shouldCreateName) {
+        if ((waystoneEntity.eyeDisplay == null || shouldCreateName
+                || waystoneEntity.lastTickNameHidden != nameHidden)) {
             waystoneEntity.createHologramDisplay(world);
         }
+        waystoneEntity.lastTickNameHidden = nameHidden;
 
         // Eye rotation
         // We use game time instead of just adding yaw because the display is recreated
@@ -78,19 +86,17 @@ public class WaystoneBlockEntity extends BlockEntity {
             // TODO: Maybe cache this value?
             waystoneEntity.eyeDisplay.setItem(getDisplayIcon(world.getServer(), record));
 
-            if (waystoneEntity.nameDisplay == null)
-                return;
+            if (waystoneEntity.nameDisplay != null) {
+                MutableComponent displayName = record.getWaystoneText().copy();
+                if (color != null)
+                    displayName.withColor(color.textColor());
+                waystoneEntity.nameDisplay.setText((MutableComponent) displayName);
 
-            MutableComponent displayName = record.getWaystoneText().copy();
-            if (color != null)
-                displayName.withColor(color.textColor());
-            waystoneEntity.nameDisplay.setText(displayName);
-
-            // Bob up and down
-            double y = (Math.sin((double) System.currentTimeMillis() / 1000) / 32) + 1.55d;
-            waystoneEntity.nameDisplay.setOffset(new Vec3(0, y, 0));
+                // Bob up and down
+                double y = (Math.sin((double) System.currentTimeMillis() / 1000) / 32) + 1.55d;
+                waystoneEntity.nameDisplay.setOffset(new Vec3(0, y, 0));
+            }
         }
-
         // Particles
         if (RANDOM.nextInt(0, waystoneOwned ? 20 : 10) == 0 && world instanceof ServerLevel serverWorld) {
             Vec3 pos = Vec3.atBottomCenterOf(waystoneEntity.getBlockPos()).add(0, 1, 0);
@@ -137,7 +143,12 @@ public class WaystoneBlockEntity extends BlockEntity {
 
         WaystoneRecord record = getThisWaystone(world);
         boolean exists = record != null;
-
+        boolean nameHidden;
+        if (exists) {
+            nameHidden = record.getAccessSettings().isNameHidden();
+        } else {
+            nameHidden = false;
+        }
         // Eye display
         ItemStack glowingEnderPearl = Items.ENDER_PEARL.getDefaultInstance();
         glowingEnderPearl.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
@@ -151,7 +162,7 @@ public class WaystoneBlockEntity extends BlockEntity {
         holder.addElement(eyeDisplay);
 
         // Waystone name display
-        if (exists) {
+        if (exists && !nameHidden) {
             nameDisplay = new TextDisplayElement();
 
             nameDisplay.setText(record.getWaystoneText());
