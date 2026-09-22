@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "sswaystones:deepslate_bricks_waystone"
+        "recipes": "sswaystones:deepslate_bricks_waystone"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

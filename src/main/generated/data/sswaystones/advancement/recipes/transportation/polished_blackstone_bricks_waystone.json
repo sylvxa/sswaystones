@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "sswaystones:polished_blackstone_bricks_waystone"
+        "recipes": "sswaystones:polished_blackstone_bricks_waystone"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
