@@ -11,13 +11,12 @@ import lol.sylvie.sswaystones.block.ModBlocks;
 import lol.sylvie.sswaystones.block.WaystoneBlock;
 import lol.sylvie.sswaystones.block.WaystoneStyle;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.SwingAnimation;
 
 public class ModItems {
     // This is considered the "default" waystone for backwards compatibility;
@@ -45,7 +44,8 @@ public class ModItems {
 
     public static final Item PORTABLE_WAYSTONE = register(
             new PortableWaystoneItem(
-                    new Item.Properties().setId(PortableWaystoneItem.KEY).rarity(Rarity.EPIC).stacksTo(1)),
+                    new Item.Properties().setId(PortableWaystoneItem.KEY).rarity(Rarity.EPIC).stacksTo(1).component(
+                            DataComponents.INTERACT_ANIMATION, new SwingAnimation(SwingAnimationType.NONE, 6))),
             PortableWaystoneItem.ID);
 
     public static final CreativeModeTab ITEM_GROUP = PolymerCreativeModeTabUtils.builder()
