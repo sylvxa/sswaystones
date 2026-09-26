@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "sswaystones:end_stone_bricks_waystone"
+        "recipes": "sswaystones:end_stone_bricks_waystone"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

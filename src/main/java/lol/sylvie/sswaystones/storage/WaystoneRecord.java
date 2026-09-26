@@ -6,8 +6,8 @@ package lol.sylvie.sswaystones.storage;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTextures;
-import com.mojang.authlib.minecraft.MinecraftSessionService;
-import com.mojang.authlib.yggdrasil.ProfileResult;
+import com.mojang.authlib.minecraft.SessionService;
+import com.mojang.authlib.services.ProfileResult;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
@@ -213,7 +213,7 @@ public final class WaystoneRecord {
         // The server has to fetch the player's skin
         GameProfile profile = new GameProfile(this.getOwnerUUID(), this.getOwnerName());
         if (server != null) {
-            MinecraftSessionService service = server.services().sessionService();
+            SessionService service = server.services().sessionService();
             if (service.getTextures(profile) == MinecraftProfileTextures.EMPTY) {
                 ProfileResult fetched = service.fetchProfile(profile.id(), false);
                 if (fetched != null)

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "sswaystones:prismarine_waystone"
+        "recipes": "sswaystones:prismarine_waystone"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

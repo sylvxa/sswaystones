@@ -4,7 +4,6 @@
 */
 package lol.sylvie.sswaystones.block;
 
-import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import lol.sylvie.sswaystones.gui.ViewerUtil;
 import lol.sylvie.sswaystones.storage.PlayerData;
@@ -51,11 +50,6 @@ public class WaystoneBlock extends BaseEntityBlock implements PolymerBlock {
 
     public WaystoneStyle getStyle() {
         return style;
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return simpleCodec((settings) -> new WaystoneBlock(style, settings));
     }
 
     // Visuals
