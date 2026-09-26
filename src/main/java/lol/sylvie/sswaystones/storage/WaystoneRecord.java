@@ -78,7 +78,7 @@ public final class WaystoneRecord {
     private WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, ResourceKey<Level> world,
             Optional<AccessSettings> accessSettings, Item icon) {
         this(owner, ownerName, waystoneName, pos, world,
-                accessSettings.orElseGet(() -> new AccessSettings(false, false, "")), icon);
+                accessSettings.orElseGet(() -> new AccessSettings(false, false, "", false)), icon);
     }
 
     public WaystoneRecord(UUID owner, String ownerName, String waystoneName, BlockPos pos, ResourceKey<Level> world,
@@ -184,7 +184,6 @@ public final class WaystoneRecord {
                 break;
             }
         }
-
         // Teleport!
         Vec3 center = Vec3.atBottomCenterOf(target);
         player.teleportTo(targetWorld, center.x(), center.y(), center.z(), Set.of(), player.getYRot(), player.getXRot(),
@@ -273,17 +272,20 @@ public final class WaystoneRecord {
         private boolean global; // Blanket flag, allows all players to access
         private boolean server; // Hides the actual owner and makes it unbreakable
         private String team; // Scoreboard team
+        private boolean hideName; // Hide name
 
         public static final Codec<AccessSettings> CODEC = RecordCodecBuilder.create(instance -> instance
                 .group(Codec.BOOL.fieldOf("global").forGetter(AccessSettings::isGlobal),
                         Codec.BOOL.fieldOf("server").forGetter(AccessSettings::isServerOwned),
-                        Codec.STRING.fieldOf("team").forGetter(AccessSettings::getTeam))
+                        Codec.STRING.fieldOf("team").forGetter(AccessSettings::getTeam),
+                        Codec.BOOL.fieldOf("hideName").forGetter(AccessSettings::isNameHidden))
                 .apply(instance, AccessSettings::new));
 
-        public AccessSettings(boolean global, boolean server, String team) {
+        public AccessSettings(boolean global, boolean server, String team, boolean hideName) {
             this.global = global;
             this.server = server;
             this.team = team;
+            this.hideName = hideName;
         }
 
         public boolean isEffectivelyGlobal() {
@@ -335,6 +337,14 @@ public final class WaystoneRecord {
 
         public boolean hasTeam() {
             return !this.getTeam().isEmpty();
+        }
+
+        public void setNameHidden(boolean nameHidden) {
+            this.hideName = nameHidden;
+        }
+
+        public boolean isNameHidden() {
+            return this.hideName;
         }
     }
 

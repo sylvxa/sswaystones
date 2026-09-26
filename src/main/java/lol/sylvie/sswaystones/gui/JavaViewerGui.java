@@ -296,6 +296,19 @@ public class JavaViewerGui extends SimpleGui {
                 slot += 1;
             }
 
+            if (Permissions.check(player, "sswaystones.create.hidename", true)) {
+                GuiElementBuilder hiddenToggle = new GuiElementBuilder(Items.NAME_TAG)
+                        .setName(Component.translatable("gui.sswaystones.toggle_hidename")
+                                .withStyle(accessSettings.isNameHidden() ? ChatFormatting.GREEN : ChatFormatting.RED));
+
+                hiddenToggle.setCallback((index, type, action, gui) -> {
+                    accessSettings.setNameHidden(!accessSettings.isNameHidden());
+                    this.updateMenu();
+                });
+                this.setSlot(slot, hiddenToggle);
+                slot += 1;
+            }
+
             // If no settings were available
             if (slot == 10) {
                 this.setSlot(13,

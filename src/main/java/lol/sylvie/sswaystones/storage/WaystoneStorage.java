@@ -105,7 +105,7 @@ public class WaystoneStorage extends SavedData {
 
         WaystoneRecord record = new WaystoneRecord(player.getUUID(), player.getName().getString(),
                 NameGenerator.generateName(), pos, world.dimension(),
-                new WaystoneRecord.AccessSettings(false, false, ""), Items.PLAYER_HEAD);
+                new WaystoneRecord.AccessSettings(false, false, "", false), Items.PLAYER_HEAD);
         String hash = record.getHash();
         this.waystones.put(hash, record);
 
